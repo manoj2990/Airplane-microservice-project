@@ -1,0 +1,19 @@
+
+# Node.js dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# IDE/editor folders
+.vscode/
+.idea/
