@@ -29,6 +29,7 @@ function flightValidation(req, res, next) {
   }
 
 
+
   next();
 }
 
@@ -66,7 +67,43 @@ function updateSeatsValidation(req, res, next) {
   next();
 }
 
+
+function validateInternalSecret(req, res, next) {
+console.log("Validating internal secret for Flight Service", req.headers['x-internal-secret']);
+
+if(req.headers['x-internal-secret'] === undefined){
+  console.log("x-internal-secret header is missing");
+
+    ErrorResponse.message = "Unauthorized Access to Flight Service"
+    ErrorResponse.error = new ApiError(
+      ["Unauthorized Access to Flight Service"], 
+      StatusCodes.UNAUTHORIZED
+    )
+    return res.status(StatusCodes.UNAUTHORIZED).json(ErrorResponse);
+  }
+
+
+
+  if(req.headers['x-internal-secret'] == process.env.API_GATEWAY_INTERNAL_SECRET){
+    console.log("Internal secret is valid");
+    next();
+    }  
+
+     ErrorResponse.message = "Unauthorized Access to Flight Service"
+    ErrorResponse.error = new ApiError(
+      ["Unauthorized Access to Flight Service"], 
+      StatusCodes.UNAUTHORIZED
+    )
+
+    
+    return res.status(StatusCodes.UNAUTHORIZED).json(ErrorResponse);
+
+    
+  }
+
+
 module.exports = {
   flightValidation,
-  updateSeatsValidation
+  updateSeatsValidation,
+  validateInternalSecret
 };

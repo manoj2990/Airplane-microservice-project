@@ -6,6 +6,9 @@ const {compareDates} = require('../utils/helpers/datetime-helpers');
 
 const {Op} = require('sequelize');
 
+const {BOOKING_SERVICE_URL} = require('../config/envirment-variable');
+const axios = require('axios');
+
 const flightRepository = new FlightRepository();
 
 async function createFlight(data) {
@@ -35,10 +38,32 @@ async function createFlight(data) {
 
 async function getFlight(flightId) {
     try {
-        const flight = await flightRepository.get(flightId);
+        const flight = await flightRepository.getFlight(flightId);
         if(!flight){
             throw new ApiError("Flight not found", StatusCodes.NOT_FOUND);
         }
+        
+        //sea maping url
+        const response = await axios.get(`${BOOKING_SERVICE_URL}/${flightId}`);
+
+        if(!response.data.success){
+            
+            throw new ApiError(response.data.message, StatusCodes.NOT_FOUND);
+        }
+        let bookedSeats = []
+        let frozenSeats = []
+        response.data.data.forEach( (e)=>{
+            if(e.booking.status == "booked"){
+                bookedSeats.push(e.seatId);
+            }
+            if(e.booking.status == "initiated"){
+                frozenSeats.push(e.seatId);
+            }
+        })
+        
+        flight.bookedSeats = bookedSeats;
+        flight.frozenSeats = frozenSeats;
+
         return flight;
     } catch (error) {
 
@@ -119,8 +144,12 @@ async function getAllFilterFlights(quary){
              [Op.between]: [min,(max === undefined ? 20000 : max)]
             }
         }
+
+        if(quary.classType ){
+            filter.type = quary.classType;
+        }
           
-        //no of persone
+        //no of person
         if(quary.travelers){
             filter.totalSeats = {
                 [Op.gte]: quary.travelers
@@ -178,15 +207,19 @@ async function deleteFlight(id) {
 
 async function updateFlight(id,data) {
     try {
+        console.log("Updating flight in service with ID:", id, "and data:", data);
         const response = await flightRepository.update(id,data);
-        if (response == 0){
+    
+        if (response[0] === 0){
          
             throw new ApiError("No flight found to update", StatusCodes.NOT_FOUND);
         }
+        console.log("Flight update successful for ID:", id);
         return response
 
     } catch (error) {
         if(error instanceof ApiError){
+            console.log("ApiError caught in updateFlight:", error);
             throw error;
         }
         throw new ApiError("Faild to update flight", StatusCodes.INTERNAL_SERVER_ERROR);
@@ -215,6 +248,39 @@ async function updateSeats(flightId,seats, decrement ){
 }
 
 
+async function getSeatId(seatno ){
+    try {
+          // req.body.seatno = ["A-1","A-5","B-3"]
+        //   seatno = [ {row: "A",coloum: "1"}, {row: "A",coloum: "5"}, {row: "B",coloum: "3"},]
+        
+        const formattedSeats = seatno.map(seat => {
+        const [column, row] = seat.split("-");
+        return { row, column };
+        });
+      
+        const response = await flightRepository.getSeatId(formattedSeats);
+
+        if (!response){
+         
+            throw new ApiError("No flight id fount", StatusCodes.NOT_FOUND);
+        }
+
+        return response
+
+    } catch (error) {
+      
+        if(error instanceof ApiError){
+            throw error;
+        }
+        throw new ApiError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
+
+    }
+}
+
+
+
+
+
     module.exports = {
     createFlight,
     deleteFlight,
@@ -222,5 +288,6 @@ async function updateSeats(flightId,seats, decrement ){
     updateFlight,
     getFlight,
     updateSeats,
-    getcompleteFlightDetail
+    getcompleteFlightDetail,
+    getSeatId
 }

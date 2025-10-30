@@ -9,7 +9,10 @@ const {RedisServer} = require("./config");
 
 const scheduleCronJob = require("./utils/common/cron-job.js")
 const { GlobalApiErrorHandler } = require('./middlewares/index.js');
+const cors = require('cors')
 
+
+app.use(cors())
 // Middleware for parsing JSON requests
 app.use(express.json());
 //middleware for parsing urlencoded requests
@@ -38,9 +41,9 @@ app.listen(PORT, async() => {
 
   scheduleCronJob().then(() => {
     console.log("✅ Cron job scheduled");
-  });
+  }); 
 
-  Queue.connectToQueue().then(() => {
-    console.log("✅ Connected to RabbitMQ");
-  });
+  // Queue.connectToQueue().then(() => {
+  //   console.log("✅ Connected to RabbitMQ");
+  // });
 });

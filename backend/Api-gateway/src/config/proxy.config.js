@@ -24,20 +24,29 @@
 
 
 const { createProxyMiddleware } = require("http-proxy-middleware");
-const { isAuth } = require("../middlewares/auth.middleware");
+const { isAuth, conditionalAuth } = require("../middlewares/auth.middleware");
+const {  FLIGHT_SERVICE_URL, BOOKING_SERVICE_URL, TIMEOUT, PROXY_TIMEOUT ,API_GATEWAY_INTERNAL_SECRET} = require("./envirment-variable");
+
+
 
 module.exports = function(app) {
 
-    
+   
     app.use(
         "/flightService",
+        conditionalAuth, // Conditional Auth middleware
         createProxyMiddleware({
-            target: "http://localhost:3000", // Target service
+            target: `${FLIGHT_SERVICE_URL}`, // Target service
             changeOrigin: true,
             pathRewrite: { "^/flightService": "" }, // Removes '/flightService' from path before proxying
             logLevel: 'debug',
-            timeout: 30000,
-            proxyTimeout: 30000,
+            timeout: Number(TIMEOUT),
+            proxyTimeout: Number(PROXY_TIMEOUT),
+            on: {
+                proxyReq: (proxyReq, req) => {
+                     proxyReq.setHeader("x-internal-secret", API_GATEWAY_INTERNAL_SECRET);
+                }
+            },
         })
     );
 
@@ -46,12 +55,12 @@ module.exports = function(app) {
         "/bookingService",
         isAuth, // Auth middleware
         createProxyMiddleware({
-            target: "http://localhost:4000", 
+            target: `${BOOKING_SERVICE_URL}`, // Target service
             changeOrigin: true,
             pathRewrite: { "^/bookingService": "" }, 
             logLevel: 'debug',
-            timeout: 30000,
-            proxyTimeout: 30000,
+            timeout: Number(TIMEOUT),
+            proxyTimeout: Number(PROXY_TIMEOUT),
             on: {
                 proxyReq: (proxyReq, req) => {
                     // Forward user details to the target service
@@ -59,6 +68,7 @@ module.exports = function(app) {
                     // Convert user object to string (like JSON)
                     proxyReq.setHeader('x-user-info', JSON.stringify(req.user));
                     }
+                    console.log("leaving apigatway---------------------->")
                 },
                 error: (err, req, res) => {
                 

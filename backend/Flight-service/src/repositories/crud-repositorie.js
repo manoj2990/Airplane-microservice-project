@@ -46,7 +46,8 @@ class CrudRepository {
                 id: id
             }
         })
-   
+        
+        console.log("Update response:", response);
         return response;
     }
 }

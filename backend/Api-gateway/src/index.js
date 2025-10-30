@@ -5,9 +5,11 @@ const apiroutes = require("./routes/index.js");
 const { RedisServer } = require("./config");
 const { RateLimiterMiddleware, GlobalApiErrorMiddleware } = require("./middlewares");
 const { ReverseProxy } = require("./config");
+const cors = require('cors')
+
 
 const app = express();
-
+app.use(cors())
 try {
     ReverseProxy(app);
 } catch (error) {

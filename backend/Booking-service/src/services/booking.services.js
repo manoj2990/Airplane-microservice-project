@@ -15,8 +15,9 @@ const { BookingRepository } = require("../repositories/index.js");
 
 const bookingRepository = new BookingRepository();
 
-const {SeatBooking, User} = require("../models")
-
+const {SeatBooking, User} = require("../models");
+const { response } = require("express");
+  const Sequelize = require('sequelize');
 
  function aggregateData(Data,bookingDetails,flightDetails) {
 
@@ -91,7 +92,11 @@ try {
             totalCost: flight.data.data.price * data.noOfSeats,
         },t);
 
-         const seatIds = data.seatIds || []; // frontend must send seat IDs
+
+        
+
+    const seatIds = data.seatIds || []; // frontend must send seat IDs
+
       for (const seatId of seatIds) {
       
        const res = await SeatBooking.create({
@@ -135,6 +140,66 @@ try {
     
 }
 }
+
+
+// async function createBooking(data) {
+
+//   const response = await db.sequelize.transaction(
+//     { isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE },
+//     async (t) => {
+
+//       const flightRes = await axios.get(`${FLIGHT_SERVICE_URL}/flights/${data.flightId}`);
+
+//       const flight = flightRes.data.data;
+
+//       if (!flight) throw new ApiError("Flight not found", StatusCodes.BAD_REQUEST);
+
+//       if (flight.totalSeats < data.noOfSeats)
+//         throw new ApiError("Not enough seats available", StatusCodes.BAD_REQUEST);
+
+//       // Create booking
+//       const booking = await bookingRepository.createBooking({
+//         userId: data.userId,
+//         flightId: data.flightId,
+//         noOfSeats: data.noOfSeats,
+//         totalCost: flight.price * data.noOfSeats,
+//       }, t);
+
+//       // Try seat reservations
+//       try {
+//         await Promise.all(data.seatIds.map(seatId => 
+//           SeatBooking.create({
+//             userId: data.userId,
+//             flightId: data.flightId,
+//             seatId,
+//             bookingId: booking.id,
+//           }, { transaction: t })
+//         ));
+
+
+//       } catch (err) {
+
+//         if (err.name === "SequelizeUniqueConstraintError") {
+//           throw new ApiError("One or more selected seats are already booked", StatusCodes.BAD_REQUEST);
+//         }
+        
+//         throw err;
+
+//       }
+
+//       // Update seat availability safely
+//       await axios.patch(`${FLIGHT_SERVICE_URL}/flights/${data.flightId}/seats`, {
+//         seats: data.noOfSeats,
+//         decrement: true
+//       });
+
+//       return booking;
+//     }
+//   );
+
+//   return response;
+// }
+
 
 
 
@@ -186,11 +251,11 @@ async function makePayment(data) {
 
         const finalData = aggregateData(data,bookingDetails, flightDetails.data.data);
        
-        await Queue.sendMessageToQueue({
-            recepientEmail: data.userEmail,
-            subject: 'Flight Booking Confirmed - Your E-Ticket',
-            content: finalData,
-        });
+        // await Queue.sendMessageToQueue({
+        //     recepientEmail: data.userEmail,
+        //     subject: 'Flight Booking Confirmed - Your E-Ticket',
+        //     content: finalData,
+        // });
 
         await transaction.commit();
                     return true;
@@ -251,8 +316,28 @@ async function  cancelOldBookings() {
     }
 }
 
+
+
+
+async function getSeatMap(flightId) {
+    try {
+        const seatMap = await bookingRepository.getsetMap(flightId);
+        if(!seatMap){
+            throw new ApiError("Seat map not found", StatusCodes.NOT_FOUND);
+        }
+
+        return seatMap;
+    } catch (error) {
+        throw new ApiError("Error while fetching seat map", StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+}
+
+
+
+
 module.exports = {
     createBooking,
     makePayment,
-    cancelOldBookings
+    cancelOldBookings,
+    getSeatMap
 }

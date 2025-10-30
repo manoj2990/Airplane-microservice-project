@@ -7,8 +7,14 @@ const router = Router();
 
 const {UserController} = require("../../controllers");
 
-router.post("/singup",UserController.createUser);
-router.post("/signin",UserController.signIn);
+router.post("/singup",
+    AuthMiddleware.validateSignUpRequest,
+    UserController.createUser);
+
+router.post("/signin",
+    AuthMiddleware.validateLoginRequest,
+    UserController.signIn);
+    
 router.post("/addrole",
     AuthMiddleware.isAuth,
     AuthMiddleware.isAdmin,

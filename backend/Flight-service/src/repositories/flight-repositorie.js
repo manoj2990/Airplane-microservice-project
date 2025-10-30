@@ -5,6 +5,7 @@ const db = require('../models')
 
 const {rowLockQueryonFlights} = require('./query');
 const {Seat} = require("../models/");
+const { Where } = require("sequelize/lib/utils");
 
 
 class FlightRepository extends CrudRepository{
@@ -13,8 +14,74 @@ class FlightRepository extends CrudRepository{
     }
 
 
+    async getFlight(flightId){
+
+         const flightRep = await Flight.findByPk(flightId,{
+            include: [
+                {
+                    model: Airplane,
+                    required: true,
+                    as: 'airplaneDetails',
+                    attributes: ['id', 'modelNumber', 'capacity']
+                },
+                {
+                    model:Airport,
+                    required: true,
+                    as: 'departureAirport', //now Airport is recognized as DepartureAirport
+                    on:{
+                        col1:sequelize.where(sequelize.col('Flight.departureAirportId'),"=",sequelize.col('departureAirport.code'),),
+                      
+                    },
+                    attributes: ['id', 'code', 'name', 'address', 'cityId'],
+                    // include:[
+                    //     {
+                    //         model:City,
+                    //         required: true,
+                    //         as:'cityDetails',
+                    //         on:{
+                    //             col1:sequelize.where(sequelize.col('departureAirport.cityId'),"=",sequelize.col('`departureAirport->cityDetails.id`'),),
+                    //         }
+                    //     }
+                    // ]
+                },
+                {
+                    model:Airport,
+                    required: true,
+                    as: 'arrivalAirport',
+                    on:{
+                        col1:sequelize.where(sequelize.col('Flight.arrivalAirportId'),"=",sequelize.col('arrivalAirport.code'),),
+                    },
+                     attributes: ['id', 'code', 'name', 'address', 'cityId'],
+                    //  include:[
+                    //     {
+                    //         model:City,
+                    //         required: true,
+                    //         as:'cityDetails',
+                    //         on:{
+                    //             col1:sequelize.where(sequelize.col('arrivalAirport.cityId'),"=",sequelize.col('`arrivalAirport->cityDetails.id`'),),
+                    //         }
+                    //     }
+                    // ]
+                },
+            ],
+            
+        })
+
+        if(!flightRep){
+            throw new ApiError("Flight not found", StatusCodes.NOT_FOUND);
+        }
+
+        
+        return flightRep.dataValues;
+
+    }
+
+
     async getFilterFlights(filter,sortingFliter){
-       
+        console.log("filter --->",filter)
+        console.log("sortingFliter --->",sortingFliter)
+
+        
         const response = await Flight.findAll({
             where: filter, // filter is an obj
             order: sortingFliter,
@@ -174,6 +241,23 @@ if(!seatrep){
     
         return {...flightRep.dataValues,seats:seatrep.map(seat=>seat.dataValues)}
     }
+
+
+  async getSeatId(seatno) {
+
+
+  const seats = await Seat.findAll({
+    where: {
+      [Op.or]: seatno.map(({ row, column }) => ({
+        [Op.and]: [{ row }, { column }]
+      }))
+    },
+    raw: true
+  });
+
+  
+  return seats;
+}
 
  
 }

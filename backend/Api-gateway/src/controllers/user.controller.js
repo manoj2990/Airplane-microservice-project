@@ -37,7 +37,7 @@ async function createUser(req,res){
         })
 
     SuccessResponse.data = user;
-
+       
     return res
         .status(StatusCodes.CREATED)
         .json(SuccessResponse);
@@ -53,12 +53,16 @@ async function createUser(req,res){
 
 async function signIn(req,res) {
     try {
-        const token = await UserService.signIn({
+         console.log("user singing--->",)
+        const response = await UserService.signIn({
             email: req.body.email,
             password: req.body.password,
         })
+        
+        delete response.user.password
 
-        SuccessResponse.data = token;
+        SuccessResponse.data = response;
+
         return res
         .status(StatusCodes.OK)
         .json(SuccessResponse);

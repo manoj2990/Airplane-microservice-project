@@ -6,7 +6,10 @@ const {Enums} = require('../utils/common');
 const {BOOKED, CANCELLED } = Enums.BookingStatus;
 const ApiError = require("../utils/errors/app-error");
 const StatusCodes = require('http-status-codes');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
+const { response } = require("express");
+
+
 class BookingRepository extends CrudRepository{
     constructor() {
         super(Booking);
@@ -97,7 +100,7 @@ class BookingRepository extends CrudRepository{
 
 
         if(!resp){
-            throw new Error("bookimgREPO:Booking not cancelled");
+            throw new Error("Booking not cancelled");
         }
 
         return resp;
@@ -116,6 +119,25 @@ class BookingRepository extends CrudRepository{
    
         return resp.dataValues;
     }
+
+
+    async getsetMap(flightId){
+
+        const response = await SeatBooking.findAll({
+            where:{
+                flightId:flightId
+            },
+            include:[{
+                as:'booking',
+                model: Booking,
+                attributes: ['id','status',],
+            }]
+        })
+
+        return response;
+    }
+
+
 }
 
 module.exports =  BookingRepository;

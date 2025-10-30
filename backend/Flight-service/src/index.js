@@ -1,8 +1,8 @@
 
 const express = require("express")
-
+const cors = require('cors')
 const app = express();
-const globalApiErrorHandler = require("./middleware/global-middleware")
+// const globalApiErrorHandler = require("./middleware/global-middleware")
 const apiroutes = require("./routes/index")
 const {PORT} = require("./config/envirment-variable/index")
 // Middleware for parsing JSON requests
@@ -10,8 +10,10 @@ app.use(express.json());
 //middleware for parsing urlencoded requests
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cors())
+
 // Middleware for handling global errors
-app.use(globalApiErrorHandler);
+// app.use(globalApiErrorHandler);
 
 // http://localhost:3000/api
 app.use('/api', apiroutes);

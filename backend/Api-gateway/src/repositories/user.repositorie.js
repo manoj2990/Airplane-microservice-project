@@ -18,11 +18,15 @@ class UserRepository extends CrudRepository{
 
 
 
-    async getByEmail(email){
-        return await this.model.findOne({ 
-            where: { email: email } 
-        });
-    }
+  async getByEmail(email) {
+  const response = await this.model.findOne({
+    where: { email }
+   
+  });
+
+  return response.dataValues
+}
+
 
 
 }
