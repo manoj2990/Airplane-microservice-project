@@ -4,7 +4,7 @@ const {WINDOW_SIZE_IN_HOURS} = require("../config/envirment-variable");
 const { SuccessResponse, ErrorResponse } = require('../utils/common');
 const {checkIfPaid} = require('../utils/common/');
 const {RedisServer} = require("../config");
-
+const {seat_lock, seat_Booked} = require('../socket')
 async function createBooking(req, res) {
     console.log(`entring into createbooking controller -->`,req.body,req.user)
     try {
@@ -16,6 +16,7 @@ async function createBooking(req, res) {
             seatIds : req.body.seatIds,
         });
         
+        await seat_lock(req.body.flightId, req.body.seatIds)
 
         SuccessResponse.data = booking;
         
@@ -63,6 +64,8 @@ async function makePayment(req, res) {
                 StatusCodes: StatusCodes.BAD_REQUEST,
                 message: 'Payment already made for this idempotency key',
             }
+
+            
             return res
             .status(StatusCodes.BAD_REQUEST)
             .json(ErrorResponse);
@@ -91,7 +94,10 @@ async function makePayment(req, res) {
         await RedisServer.set(`key-${idempotencykey}`, idempotencykey);
         await RedisServer.expire(`key-${idempotencykey}`, 10 * 60);
 
+        await seat_Booked(req.body.flightId, req.body.seatIds)
+
         SuccessResponse.data = payment;
+
         return res
         .status(StatusCodes.CREATED)
         .json(SuccessResponse);

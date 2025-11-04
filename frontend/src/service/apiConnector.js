@@ -2,6 +2,7 @@
 
 import axios from "axios"
 
+// Create axios instance with timeout and default headers
 export const axiosInstance = axios.create({
     timeout: 10000, // 10 seconds timeout
     headers: {
@@ -9,7 +10,7 @@ export const axiosInstance = axios.create({
     }
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for error handling
 axiosInstance.interceptors.request.use(
     (config) => {
         console.log('Making request to:', config.url);
@@ -24,7 +25,7 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// Add response interceptor for debugging
+// Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response) => {
         console.log('Response received:', response.status, response.data);
@@ -38,17 +39,42 @@ axiosInstance.interceptors.response.use(
 );
 
 export const apiConnector = (method, url, bodyData, headers, params) => {
-    console.log("apiconnector method -->",method)
-     console.log("apiconnector url -->",url)
-      console.log("apiconnector bodyData -->",bodyData)
-       console.log("apiconnector headers -->",headers)
+    try {
+        console.log("apiconnector method -->",method)
+        console.log("apiconnector url -->",url)
+        console.log("apiconnector bodyData -->",bodyData)
+        console.log("apiconnector headers -->",headers)
         console.log("apiconnector params -->",params)
 
-    return axiosInstance({
-        method:`${method}`,
-        url:`${url}`,
-        data: bodyData ? bodyData : null,
-        headers: headers ? headers: null,
-        params: params ? params : null,
-    });
+        // Validate required parameters
+        if (!method || !url) {
+            throw new Error('Method and URL are required parameters');
+        }
+
+        // Ensure method is uppercase
+        const validMethod = method.toUpperCase();
+
+        return axiosInstance({
+            method: validMethod,
+            url: url,
+            data: bodyData ? bodyData : null,
+            headers: headers ? headers : null,
+            params: params ? params : null,
+        }).catch((error) => {
+            // Enhanced error handling
+            if (error.response) {
+                // Server responded with error status
+                throw error;
+            } else if (error.request) {
+                // Request made but no response
+                throw new Error('Network error: No response from server. Please check your connection.');
+            } else {
+                // Error in request setup
+                throw new Error(`Request error: ${error.message}`);
+            }
+        });
+    } catch (error) {
+        console.error('apiConnector error:', error);
+        return Promise.reject(error);
+    }
 }

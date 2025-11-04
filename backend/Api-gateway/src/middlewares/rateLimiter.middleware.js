@@ -5,11 +5,18 @@ const { ErrorResponse } = require("../utils/common");
 
 
 const WINDOW_SIZE_IN_HOURS = 2;
-const MAX_WINDOW_REQUEST_COUNT = 5;
+const MAX_WINDOW_REQUEST_COUNT = 2;
 const WINDOW_LOG_INTERVAL_IN_HOURS = 1;
 
+if (!RedisServer.status || RedisServer.status !== "ready") {
+  console.log("⚠️ Redis not ready yet:", RedisServer.status);
+}
+
+
 const rateLimiter = async (req,res,next)=>{
-   
+
+   console.log("🔥 Rate limiter triggered for:", req.originalUrl);
+    console.log("Client IP:", req.ip);
     try {
             
 const ip = req.ip

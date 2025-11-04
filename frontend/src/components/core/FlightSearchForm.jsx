@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { useDispatch } from "react-redux";
+import { toast } from "react-hot-toast";
 import {searchFlight} from "../../service/operation/searchApi"
 import {extractCode} from "../../utils/ExtractAirportcode"
 import { useNavigate } from "react-router-dom";
@@ -33,16 +34,25 @@ const AirportSelectionModal = ({ isOpen, onClose, onSelect, title, modalType }) 
         </div>
 
         <div className="max-h-80 overflow-y-auto">
-          {airports.map((airport) => (
-            <div
-              key={airport.code}
-              onClick={() => onSelect(airport)}
-              className="p-3 hover:bg-teal-50 rounded-lg cursor-pointer transition border-b border-gray-100 last:border-0"
-            >
-              <p className="font-semibold text-gray-800">{airport.city}</p>
-              <p className="text-sm text-gray-500">{airport.code}</p>
-            </div>
-          ))}
+          {airports && Array.isArray(airports) && airports.length > 0 ? (
+            airports.map((airport) => {
+              if (!airport || !airport.code) {
+                return null;
+              }
+              return (
+                <div
+                  key={airport.code}
+                  onClick={() => onSelect && onSelect(airport)}
+                  className="p-3 hover:bg-teal-50 rounded-lg cursor-pointer transition border-b border-gray-100 last:border-0"
+                >
+                  <p className="font-semibold text-gray-800">{airport.city || "Unknown"}</p>
+                  <p className="text-sm text-gray-500">{airport.code || "N/A"}</p>
+                </div>
+              );
+            })
+          ) : (
+            <p className="p-3 text-gray-500 text-center">No airports available</p>
+          )}
         </div>
       </div>
     </div>
@@ -54,7 +64,7 @@ export const FlightSearchForm = () =>{
   const [formData, setFormData] = useState({
     from: "",
     to: "",
-    departure: "",
+    departure: "12-8-2024",
     quantity: "1",
     classType: "Economy",
   });
@@ -68,36 +78,97 @@ export const FlightSearchForm = () =>{
   const handleSubmit = (e) => {
     e.preventDefault();
    
+    try {
+      // Validate form data
+      if (!formData.from || !formData.to) {
+        toast.error("Please select both departure and arrival airports");
+        return;
+      }
 
-   
-    
-    const departureAirportId = extractCode(formData.from)
-    const arrivalAirportId = extractCode(formData.to)
+      // if (!formData.departure) {
+      //   toast.error("Please select a departure date");
+      //   return;
+      // }
+
+      // Validate date is not in the past
+      // const selectedDate = new Date(formData.departure);
+      // const today = new Date();
+      // today.setHours(0, 0, 0, 0);
+      
+      // if (selectedDate < today) {
+      //   toast.error("Departure date cannot be in the past");
+      //   return;
+      // }
+
+      // Validate quantity
+      const quantity = parseInt(formData.quantity, 10);
+      if (isNaN(quantity) || quantity < 1 || quantity > 5) {
+        toast.error("Number of travelers must be between 1 and 5");
+        return;
+      }
+
+      const departureAirportId = extractCode(formData.from);
+      const arrivalAirportId = extractCode(formData.to);
+
+      // Validate airport codes were extracted successfully
+      if (!departureAirportId || !arrivalAirportId) {
+        toast.error("Invalid airport selection. Please try again.");
+        return;
+      }
+
+      // Ensure airports are different
+      if (departureAirportId === arrivalAirportId) {
+        toast.error("Departure and arrival airports must be different");
+        return;
+      }
 
       dispatch(searchFlight(
-      `${departureAirportId}-${arrivalAirportId}`,
-      formData.departure,
-      formData.quantity,
-      formData.classType,
-      navigate
-    ));
-
+        `${departureAirportId}-${arrivalAirportId}`,
+        formData.departure,
+        formData.quantity,
+        formData.classType,
+        navigate
+      ));
+    } catch (error) {
+      console.error("handleSubmit error:", error);
+      toast.error("An error occurred. Please try again.");
+    }
   };
 
   const handleSelectDeparture = (airport) => {
-    setFormData((prev) => ({
-      ...prev,
-      from: `${airport.city} (${airport.code})`,
-    }));
-    setShowDepartureModal(false);
+    try {
+      if (!airport || !airport.city || !airport.code) {
+        console.error("Invalid airport data:", airport);
+        toast.error("Invalid airport selection");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        from: `${airport.city} (${airport.code})`,
+      }));
+      setShowDepartureModal(false);
+    } catch (error) {
+      console.error("handleSelectDeparture error:", error);
+      toast.error("An error occurred while selecting airport");
+    }
   };
 
   const handleSelectArrival = (airport) => {
-    setFormData((prev) => ({
-      ...prev,
-      to: `${airport.city} (${airport.code})`,
-    }));
-    setShowArrivalModal(false);
+    try {
+      if (!airport || !airport.city || !airport.code) {
+        console.error("Invalid airport data:", airport);
+        toast.error("Invalid airport selection");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        to: `${airport.city} (${airport.code})`,
+      }));
+      setShowArrivalModal(false);
+    } catch (error) {
+      console.error("handleSelectArrival error:", error);
+      toast.error("An error occurred while selecting airport");
+    }
   };
 
   const showDeparture = ()=>{

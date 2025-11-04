@@ -1,19 +1,27 @@
 
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { login, signup } from "../service/operation/authApi";
 
 
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const location = useLocation();
 
   const booking = useSelector( (state)=> state.booking)
   console.log("booking --->", booking)
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Handle navigation state to toggle between login and signup
+  useEffect(() => {
+    if (location.state?.isSignUp !== undefined) {
+      setIsLogin(!location.state.isSignUp);
+    }
+  }, [location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

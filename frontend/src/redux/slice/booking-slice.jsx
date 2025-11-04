@@ -19,12 +19,29 @@ const bookingSlice = createSlice({
     },
     setBookedSeats: (state, action) => {
       console.log("Triggered setBookedSeats slice -->", action.payload);
-      state.bookedSeats = action.payload;
+      const merged = [...state.bookedSeats, ...action.payload];
+      const BookedSeats = [...new Set(merged)];
+
+      state.bookedSeats = BookedSeats;
+      console.log("my setBookedSeats seat --->",state.bookedSeats)
     },
     setFrozenSeats: (state, action) => {
       console.log("Triggered setFrozenSeats slice -->", action.payload);
-      state.frozenSeats = action.payload;
+      const merged = [...state.frozenSeats, ...action.payload];
+      const uniqueSeats = [...new Set(merged)];
+
+      state.frozenSeats = uniqueSeats;
+      console.log("my freez seat --->",state.frozenSeats)
     },
+
+    setReleasedSeats: (state, action) => {
+      console.log("Triggered setReleasedSeats slice -->", action.payload);
+      const releasedSeats = action.payload; 
+      state.frozenSeats = state.frozenSeats.filter(
+        (s) => !releasedSeats.includes(s)
+      );
+    },
+
     setUserselectedseats: (state, action) => {
         console.log("Triggered setUserselectedseats slice -->", action.payload);
       state.selectedSeats = action.payload;
@@ -42,6 +59,7 @@ export const {
   setBooking,
   setBookedSeats,
   setFrozenSeats,
+  setReleasedSeats,
   setUserselectedseats,
   setLoading,
   setError,

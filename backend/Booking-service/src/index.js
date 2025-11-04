@@ -11,6 +11,9 @@ const scheduleCronJob = require("./utils/common/cron-job.js")
 const { GlobalApiErrorHandler } = require('./middlewares/index.js');
 const cors = require('cors')
 
+const http = require("http");
+ const { setup_socket } = require('./config/socket.js');
+
 
 app.use(cors())
 // Middleware for parsing JSON requests
@@ -20,12 +23,24 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiroutes);
 
+//stocket.io setup 
+const server = http.createServer(app); 
+const io = setup_socket(server); 
 
+io.on("connection", (socket) => {
+
+   console.log("🟢 User connected:", socket.id); 
+
+  socket.on("disconnect", () => { 
+    console.log("🔴 User disconnected:", socket.id); 
+  }); 
+
+});
 
 
 RedisServer.on("connect", () => {
   console.log("✅ Redis connected on port " + RedisServer.options.port);
-  RedisServer.setex("Database", 10000, "Database connected");
+  RedisServer.setex("Booking-service Database", 10000, "Booking-service Database connected");
 });
 
 RedisServer.on("error", (err) => {
@@ -36,7 +51,7 @@ RedisServer.on("error", (err) => {
 // Use the global API error handler middleware
 app.use(GlobalApiErrorHandler);
 
-app.listen(PORT, async() => {
+server.listen(PORT, async() => {
   console.log(`✅ Server running on port ${PORT}`);
 
   scheduleCronJob().then(() => {
@@ -47,3 +62,5 @@ app.listen(PORT, async() => {
   //   console.log("✅ Connected to RabbitMQ");
   // });
 });
+
+module.exports = io

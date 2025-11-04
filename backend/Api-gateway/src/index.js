@@ -10,6 +10,12 @@ const cors = require('cors')
 
 const app = express();
 app.use(cors())
+
+
+
+console.log("✅ Rate limiter middleware attached before /api routes");
+// app.use(RateLimiterMiddleware);
+
 try {
     ReverseProxy(app);
 } catch (error) {
@@ -23,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 RedisServer.on("connect", () => {
   console.log("✅ Redis connected on port " + RedisServer.options.port);
-  RedisServer.setex("Database", 10000, "Database connected");
+  RedisServer.setex("Api-gatway Database", 10000, "Api-gatway Database connected");
 });
 
 RedisServer.on("error", (err) => {
@@ -31,7 +37,7 @@ RedisServer.on("error", (err) => {
 });
 
 
-app.use(RateLimiterMiddleware);
+
 app.use('/api', apiroutes);
 
 app.use((req, res, next) => {

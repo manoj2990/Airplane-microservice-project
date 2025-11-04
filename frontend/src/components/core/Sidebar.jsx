@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { useDispatch } from "react-redux";
+import { toast } from "react-hot-toast";
 import {searchFlight} from "../../service/operation/searchApi"
 import {extractCode} from "../../utils/ExtractAirportcode"
 import { useNavigate } from "react-router-dom";
@@ -33,16 +34,25 @@ const AirportSelectionModal = ({ isOpen, onClose, onSelect, title, modalType }) 
         </div>
 
         <div className="max-h-80 overflow-y-auto">
-          {airports.map((airport) => (
-            <div
-              key={airport.code}
-              onClick={() => onSelect(airport)}
-              className="p-3 hover:bg-teal-50 rounded-lg cursor-pointer transition border-b border-gray-100 last:border-0"
-            >
-              <p className="font-semibold text-gray-800">{airport.city}</p>
-              <p className="text-sm text-gray-500">{airport.code}</p>
-            </div>
-          ))}
+          {airports && Array.isArray(airports) && airports.length > 0 ? (
+            airports.map((airport) => {
+              if (!airport || !airport.code) {
+                return null;
+              }
+              return (
+                <div
+                  key={airport.code}
+                  onClick={() => onSelect && onSelect(airport)}
+                  className="p-3 hover:bg-teal-50 rounded-lg cursor-pointer transition border-b border-gray-100 last:border-0"
+                >
+                  <p className="font-semibold text-gray-800">{airport.city || "Unknown"}</p>
+                  <p className="text-sm text-gray-500">{airport.code || "N/A"}</p>
+                </div>
+              );
+            })
+          ) : (
+            <p className="p-3 text-gray-500 text-center">No airports available</p>
+          )}
         </div>
       </div>
     </div>
@@ -54,7 +64,7 @@ export const Sidebar = () =>{
   const [formData, setFormData] = useState({
     from: "",
     to: "",
-    departure: "",
+    departure: "12-8-2024",
     quantity: "1",
     classType: "Economy",
   });
@@ -67,47 +77,135 @@ export const Sidebar = () =>{
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Search data:", formData);
-
-   
     
-    const departureAirportId = extractCode(formData.from)
-    const arrivalAirportId = extractCode(formData.to)
+    try {
+      console.log("Search data:", formData);
+
+      // Validate form data
+      if (!formData.from || !formData.to) {
+        toast.error("Please select both departure and arrival airports");
+        return;
+      }
+
+      if (!formData.departure) {
+        toast.error("Please select a departure date");
+        return;
+      }
+
+      // Validate date format and validity
+      try {
+        const selectedDate = new Date(formData.departure);
+        if (isNaN(selectedDate.getTime())) {
+          toast.error("Invalid departure date. Please select a valid date.");
+          return;
+        }
+
+        // Optional: Validate date is not in the past (commented out as per user preference)
+        // const today = new Date();
+        // today.setHours(0, 0, 0, 0);
+        // if (selectedDate < today) {
+        //   toast.error("Departure date cannot be in the past");
+        //   return;
+        // }
+      } catch (dateError) {
+        console.error("Date validation error:", dateError);
+        toast.error("Invalid departure date format");
+        return;
+      }
+
+      // Validate quantity
+      const quantity = parseInt(formData.quantity, 10);
+      if (isNaN(quantity) || quantity < 1 || quantity > 5) {
+        toast.error("Number of travelers must be between 1 and 5");
+        return;
+      }
+
+      const departureAirportId = extractCode(formData.from);
+      const arrivalAirportId = extractCode(formData.to);
+
+      // Validate airport codes were extracted successfully
+      if (!departureAirportId || !arrivalAirportId) {
+        toast.error("Invalid airport selection. Please try again.");
+        return;
+      }
+
+      // Ensure airports are different
+      if (departureAirportId === arrivalAirportId) {
+        toast.error("Departure and arrival airports must be different");
+        return;
+      }
+
+      // Validate dispatch and searchFlight function
+      if (!dispatch || !searchFlight) {
+        toast.error("Error initializing search. Please refresh the page.");
+        return;
+      }
 
       dispatch(searchFlight(
-      `${departureAirportId}-${arrivalAirportId}`,
-      formData.departure,
-      formData.quantity,
-      formData.classType,
-      navigate
-    ));
-
+        `${departureAirportId}-${arrivalAirportId}`,
+        formData.departure,
+        formData.quantity,
+        formData.classType,
+        navigate
+      ));
+    } catch (error) {
+      console.error("handleSubmit error:", error);
+      toast.error("An error occurred. Please try again.");
+    }
   };
 
   const handleSelectDeparture = (airport) => {
-    setFormData((prev) => ({
-      ...prev,
-      from: `${airport.city} (${airport.code})`,
-    }));
-    setShowDepartureModal(false);
+    try {
+      if (!airport || !airport.city || !airport.code) {
+        console.error("Invalid airport data:", airport);
+        toast.error("Invalid airport selection");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        from: `${airport.city} (${airport.code})`,
+      }));
+      setShowDepartureModal(false);
+    } catch (error) {
+      console.error("handleSelectDeparture error:", error);
+      toast.error("An error occurred while selecting airport");
+    }
   };
 
   const handleSelectArrival = (airport) => {
-    setFormData((prev) => ({
-      ...prev,
-      to: `${airport.city} (${airport.code})`,
-    }));
-    setShowArrivalModal(false);
+    try {
+      if (!airport || !airport.city || !airport.code) {
+        console.error("Invalid airport data:", airport);
+        toast.error("Invalid airport selection");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        to: `${airport.city} (${airport.code})`,
+      }));
+      setShowArrivalModal(false);
+    } catch (error) {
+      console.error("handleSelectArrival error:", error);
+      toast.error("An error occurred while selecting airport");
+    }
   };
 
-  const showDeparture = ()=>{
-     setShowDepartureModal(true)
-      setShowArrivalModal(false)
+  const showDeparture = () => {
+    try {
+      setShowDepartureModal(true);
+      setShowArrivalModal(false);
+    } catch (error) {
+      console.error("showDeparture error:", error);
+    }
   }
 
-   const showArrival = ()=>{
-     setShowDepartureModal(false)
-      setShowArrivalModal(true)
+  const showArrival = () => {
+    try {
+      setShowDepartureModal(false);
+      setShowArrivalModal(true);
+    } catch (error) {
+      console.error("showArrival error:", error);
+    }
   }
   return (
     <div className="relative w-1/3">
@@ -145,10 +243,16 @@ export const Sidebar = () =>{
           <input
             type="date"
             name="departure"
-            value={formData.departure}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, departure: e.target.value }))
-            }
+            value={formData.departure || ""}
+            onChange={(e) => {
+              try {
+                const value = e.target.value;
+                setFormData((prev) => ({ ...prev, departure: value }));
+              } catch (error) {
+                console.error("Error updating departure date:", error);
+                toast.error("Error updating date. Please try again.");
+              }
+            }}
             className="bg-white h-10 border-b focus:outline-none focus:border-[#009688] transition"
           />
         </div>
@@ -162,9 +266,17 @@ export const Sidebar = () =>{
             min="1"
             max="5"
             value={formData.quantity}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, quantity: e.target.value }))
-            }
+            onChange={(e) => {
+              try {
+                const value = e.target.value;
+                // Validate input is a number
+                if (value === "" || (!isNaN(value) && parseInt(value, 10) >= 1 && parseInt(value, 10) <= 5)) {
+                  setFormData((prev) => ({ ...prev, quantity: value }));
+                }
+              } catch (error) {
+                console.error("Error updating quantity:", error);
+              }
+            }}
             placeholder="1"
             className="bg-white h-10 cursor-pointer   border-b focus:outline-none focus:border-[#009688] transition"
           />

@@ -9,7 +9,7 @@ import { useEffect } from "react";
 export const PaymentModal = ({ totalFare, onClose }) => {
   const [loading, setLoading] = useState(false);
   const ticketInfo = useSelector( (state)=> state.ticket)
-  console.log("ticketifo -->", ticketInfo)
+  console.log("payment card infor ---->",ticketInfo.ticketinfo)
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -21,11 +21,13 @@ export const PaymentModal = ({ totalFare, onClose }) => {
 
   const handlePayment = async () => {
   setLoading(true);
+  
   try {
     await dispatch(
       processPayment(
         {
           userId: ticketInfo.ticketinfo.userId,
+          flightId:ticketInfo?.ticketinfo?.flightId,
           payment: ticketInfo.ticketinfo.totalCost,
           bookingId: ticketInfo.ticketinfo.id,
           seatIds: ticketInfo.ticketinfo.seats

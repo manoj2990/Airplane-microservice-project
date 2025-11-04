@@ -65,7 +65,7 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
 
 
        const storedToken = localStorage.getItem("token");
-console.log("storedToken token --->", storedToken);
+
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
@@ -93,7 +93,7 @@ console.log("storedToken token --->", storedToken);
           response.data.message || "Failed to load flight details"
         );
       }
-   
+   console.log("response.data.data --->", response.data.data);
      dispatch(setticketinfo({...response.data.data,seats:bookingData.seatIds}))
 
       toast.success("successfully create booking...");
@@ -122,7 +122,7 @@ export function processPayment(paymentData, onSuccess, navigate) {
     dispatch(setLoading(true));
    
     const storedToken = localStorage.getItem("token");
-console.log("storedToken token --->", storedToken);
+
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
@@ -130,10 +130,10 @@ console.log("storedToken token --->", storedToken);
       token = storedToken; 
     }
 
-console.log("Final token --->", token);
+
 
 const key = uuidv4();
-console.log("uuidv4 key --->", key);
+
     try {
     
       const response = await apiConnector(
@@ -148,7 +148,7 @@ console.log("uuidv4 key --->", key);
         null
       );
 
-      console.log("Payment API response --->", response.data);
+      
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       if (!response.data.success) {
