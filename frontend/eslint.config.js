@@ -22,6 +22,9 @@ export default defineConfig([
         sourceType: 'module',
       },
     },
+    plugins: {
+      react: require('eslint-plugin-react'),
+    },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
       "react/jsx-uses-vars": "error"
