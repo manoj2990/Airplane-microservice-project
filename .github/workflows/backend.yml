@@ -1,0 +1,158 @@
+name: Backend Microservice CI-CD
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+jobs:
+
+  detectChanges:
+    name: Detect changed backend services
+    runs-on: ubuntu-latest
+    outputs:
+      api_changed: ${{ steps.flags.outputs.api_changed }}
+      flight_changed: ${{ steps.flags.outputs.flight_changed }}
+      booking_changed: ${{ steps.flags.outputs.booking_changed }}
+      notification_changed: ${{ steps.flags.outputs.notification_changed }}
+    steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v3
+
+      - name: Get changed files
+        id: changed
+        uses: tj-actions/changed-files@v37
+
+      - name: Store change flags
+        id: flags
+        run: |
+          echo "api_changed=${{ contains(steps.changed.outputs.all_changed_files, 'backend/Api-gateway') }}" >> $GITHUB_OUTPUT
+          echo "flight_changed=${{ contains(steps.changed.outputs.all_changed_files, 'backend/Flight-service') }}" >> $GITHUB_OUTPUT
+          echo "booking_changed=${{ contains(steps.changed.outputs.all_changed_files, 'backend/Booking-service') }}" >> $GITHUB_OUTPUT
+          echo "notification_changed=${{ contains(steps.changed.outputs.all_changed_files, 'backend/Notification-service') }}" >> $GITHUB_OUTPUT
+
+  api-gateway:
+    needs: detectChanges
+    if: needs.detectChanges.outputs.api_changed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ env.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build and Push API Gateway
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend/Api-gateway
+          file: ./backend/Api-gateway/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-api-gateway:latest
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-api-gateway:v${{ github.run_number }}
+
+  flight-service:
+    needs: detectChanges
+    if: needs.detectChanges.outputs.flight_changed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ env.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v4
+        with:
+          context: ./backend/Flight-service
+          file: ./backend/Flight-service/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-flight-service:latest
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-flight-service:v${{ github.run_number }}
+
+  booking-service:
+    needs: detectChanges
+    if: needs.detectChanges.outputs.booking_changed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ env.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v4
+        with:
+          context: ./backend/Booking-service
+          file: ./backend/Booking-service/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-booking-service:latest
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-booking-service:v${{ github.run_number }}
+
+  notification-service:
+    needs: detectChanges
+    if: needs.detectChanges.outputs.notification_changed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ env.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v4
+        with:
+          context: ./backend/Notification-service
+          file: ./backend/Notification-service/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-notification-service:latest
+            ${{ env.DOCKER_HUB_USERNAME }}/airline-notification-service:v${{ github.run_number }}
+
+  deploy-api-gateway:
+    name: Deploy API Gateway
+    runs-on: ubuntu-latest
+    needs: api-gateway
+    if: needs.detectChanges.outputs.api_changed == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - run: curl -X POST ${{ secrets.RENDER_API_GATEWAY_DEPLOY_HOOK }}
+
+  deploy-flight-service:
+    name: Deploy Flight Service
+    runs-on: ubuntu-latest
+    needs: flight-service
+    if: needs.detectChanges.outputs.flight_changed == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - run: curl -X POST ${{ secrets.RENDER_FLIGHT_SERVICE_DEPLOY_HOOK }}
+
+  deploy-booking-service:
+    name: Deploy Booking Service
+    runs-on: ubuntu-latest
+    needs: booking-service
+    if: needs.detectChanges.outputs.booking_changed == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - run: curl -X POST ${{ secrets.RENDER_BOOKING_SERVICE_DEPLOY_HOOK }}
+
+  deploy-notification-service:
+    name: Deploy Notification Service
+    runs-on: ubuntu-latest
+    needs: notification-service
+    if: needs.detectChanges.outputs.notification_changed == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - run: curl -X POST ${{ secrets.RENDER_NOTIFICATION_SERVICE_DEPLOY_HOOK }}

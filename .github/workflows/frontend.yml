@@ -14,7 +14,6 @@ env: #define all var/secrets here in one place as env
       NODE_VERSION: ${{ vars.NODE_VERSION }}
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      DOCKER_IMAGE_NAME: ${{ vars.DOCKER_IMAGE_NAME }}
       VERCEL_DEPLOY_HOOK_FRONTEND: ${{ secrets.VERCEL_DEPLOY_HOOK_FRONTEND }}
 
 jobs:
@@ -82,8 +81,8 @@ jobs:
                 file: ./frontend/Dockerfile
                 push: true
                 tags: |
-                 ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-                 ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:v${{ github.run_number }}
+                 ${{ env.DOCKER_HUB_USERNAME }}/airline-frontend:latest
+                 ${{ env.DOCKER_HUB_USERNAME }}/airline-frontend:v${{ github.run_number }}
 
     deploy-to-vercel:
         name: Deploy to vercel
