@@ -58,7 +58,7 @@ export function getFlightbyId(flightId, navigate) {
   };
 }
 
-export function createbooking(bookingData, navigate, handlepaymentmodel) {
+export function createbooking(bookingData, handlepaymentmodel) {
   return async (dispatch) => {
     const toastId = toast.loading("loading....");
     dispatch(setticketLoading(true));
@@ -69,8 +69,8 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
-    } catch (error) {
-      console.error("Error parsing token:", error);
+    } catch{
+     
       token = storedToken; 
     }
 
@@ -127,7 +127,7 @@ export function processPayment(paymentData, onSuccess, navigate) {
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
-    } catch (error) {
+    } catch{
       token = storedToken; 
     }
 
