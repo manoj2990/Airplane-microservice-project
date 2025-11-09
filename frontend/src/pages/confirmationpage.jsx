@@ -1,10 +1,10 @@
-import React from "react";
+
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAddress} from "../utils/Helperfunction";
 import { useSelector } from "react-redux";
 
-export const ConfirmationPage = ({ from = "Delhi", to = "Bangalore" }) => {
+export const ConfirmationPage = () => {
     const navigate = useNavigate();
     const { booking } = useSelector((state) => state.booking);
 

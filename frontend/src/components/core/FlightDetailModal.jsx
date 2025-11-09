@@ -12,6 +12,10 @@ import { toast } from "react-hot-toast";
 
 
 export const FlightDetailsModal = ({ onClose, flights }) => {
+
+  const {userSearch} = useSelector( (state) => state.userSearch || {}) || {}
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
  
   
   // Validate flights prop
@@ -32,9 +36,7 @@ export const FlightDetailsModal = ({ onClose, flights }) => {
     );
   }
 
-  const {userSearch} = useSelector( (state) => state.userSearch || {}) || {}
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+
 
  
 

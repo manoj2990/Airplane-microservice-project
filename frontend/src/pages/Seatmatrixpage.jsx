@@ -21,7 +21,7 @@ import { setFrozenSeats as setBackendFrozen ,
 
 import {socket} from "../socket.io"
 
-export const SeatMatrixPage = ({ flightId }) => {
+export const SeatMatrixPage = () => {
   const [bookedSeats, setBookedSeats] = useState([]); // permanently booked
   const [selectedSeats, setSelectedSeats] = useState([]); // user-selected
   const [frozenSeats, setFrozenSeats] = useState([]); // temporarily frozen
@@ -40,9 +40,7 @@ export const SeatMatrixPage = ({ flightId }) => {
     useSelector((state) => state.booking || {});
 
   const { userSearch = {} } = useSelector((state) => state.userSearch || {});
-  const authUser = useSelector((state) => state.auth || {});
 
-  const seatData = useSelector((state) => state.booking);
 
   // === Seat Layout ===
   const seatLayout = {

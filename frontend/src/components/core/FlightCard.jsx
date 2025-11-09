@@ -5,6 +5,11 @@ import {FlightDetailsModal} from "../core/FlightDetailModal"
 
 
 export const FlightCard = ({ flight }) => {
+
+
+   const [open, setOpen] = useState(false);
+
+   
   // Validate flight prop
   if (!flight) {
     console.error("FlightCard: flight prop is missing or invalid");
@@ -16,7 +21,7 @@ export const FlightCard = ({ flight }) => {
   }
 
   const {
-    flightNumber,
+   
     departureTime,
     arrivalTime,
     departureAirport,
@@ -24,7 +29,7 @@ export const FlightCard = ({ flight }) => {
     price,
   } = flight || {};
 
-   const [open, setOpen] = useState(false);
+  
 
   // Validate required fields
   if (!departureTime || !arrivalTime || !departureAirport || !arrivalAirport) {

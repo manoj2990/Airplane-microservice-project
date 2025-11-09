@@ -1,7 +1,6 @@
 
 
 // This will prevent non-authenticated users from accessing this route
-import { useSelector } from "react-redux"
 import { Navigate } from "react-router-dom"
 
 export function PrivateRoute({ children }) {

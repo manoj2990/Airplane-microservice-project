@@ -69,7 +69,7 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
-    } catch (err) {
+    } catch () {
       token = storedToken; 
     }
 
@@ -126,7 +126,7 @@ export function processPayment(paymentData, onSuccess, navigate) {
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
-    } catch (err) {
+    } catch () {
       token = storedToken; 
     }
 

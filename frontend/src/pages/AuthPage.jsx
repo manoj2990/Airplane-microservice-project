@@ -11,7 +11,7 @@ export const AuthPage = () => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const location = useLocation();
 
-  const booking = useSelector( (state)=> state.booking)
+
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
