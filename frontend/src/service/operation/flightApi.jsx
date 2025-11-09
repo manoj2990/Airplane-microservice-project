@@ -69,7 +69,8 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
-    } catch () {
+    } catch (error) {
+      console.error("Error parsing token:", error);
       token = storedToken; 
     }
 
@@ -126,7 +127,7 @@ export function processPayment(paymentData, onSuccess, navigate) {
     let token = null;
     try {
       token = JSON.parse(storedToken)?.token ;
-    } catch () {
+    } catch (error) {
       token = storedToken; 
     }
 

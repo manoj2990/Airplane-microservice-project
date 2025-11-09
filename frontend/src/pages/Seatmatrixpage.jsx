@@ -102,7 +102,7 @@ export const SeatMatrixPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [backendBooked, backendFrozen]);
+  }, [backendBooked, backendFrozen,seatLayout]);
 
 
 

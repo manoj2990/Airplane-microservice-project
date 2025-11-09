@@ -91,7 +91,7 @@ useEffect(() => {
     // Reset countdown if error is cleared or different error
     setRetryCountdown(0);
   }
-}, [errorStatus, error]);
+}, [errorStatus, error, retryCountdown]);
 
 // Clear flight data on error
 useEffect(() => {
