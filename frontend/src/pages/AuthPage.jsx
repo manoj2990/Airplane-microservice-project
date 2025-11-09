@@ -12,7 +12,7 @@ export const AuthPage = () => {
   const location = useLocation();
 
   const booking = useSelector( (state)=> state.booking)
-  console.log("booking --->", booking)
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -31,12 +31,12 @@ export const AuthPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isLogin) {
-      console.log("Logging in with:", formData);
+     
       // TODO: call login API here
      const id = localStorage.getItem('flightId')
      dispatch( login(formData,id,navigate))
     } else {
-      console.log("Signing up with:", formData);
+  
       // TODO: call signup API here
       dispatch( signup(formData))
       setIsLogin(true)

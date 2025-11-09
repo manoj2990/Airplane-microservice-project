@@ -79,7 +79,7 @@ export const Sidebar = () =>{
     e.preventDefault();
     
     try {
-      console.log("Search data:", formData);
+
 
       // Validate form data
       if (!formData.from || !formData.to) {

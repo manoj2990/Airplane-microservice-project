@@ -32,7 +32,7 @@ async function sendEmail(mailFrom, mailTo, subject, body) {
       throw error;
     }
 
-    throw AppError(error.message,StatusCodes.INTERNAL_SERVER_ERROR)
+    throw new AppError(error.message,StatusCodes.INTERNAL_SERVER_ERROR)
   }
 
 }
@@ -53,7 +53,7 @@ async function createTicket(data) {
         if(error instanceof Error) {
             throw error;
         }
-        throw AppError(error.message,StatusCodes.INTERNAL_SERVER_ERROR)
+        throw new AppError(error.message,StatusCodes.INTERNAL_SERVER_ERROR)
     }
 }
 
@@ -69,7 +69,7 @@ async function  getPendingEmails(params) {
         if(error instanceof Error) {
             throw error;
         }
-        throw AppError(error.message,StatusCodes.INTERNAL_SERVER_ERROR)
+        throw new AppError(error.message,StatusCodes.INTERNAL_SERVER_ERROR)
     }
 }
 

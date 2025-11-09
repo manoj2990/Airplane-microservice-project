@@ -48,11 +48,11 @@ async function createUser(data){
 
 async function signIn(data) {
     try {
-        console.log("coming to service---->")
+      
         const {email,password} = data;
     
         const user = await userRepository.getByEmail(email);
-        console.log("getting user-->", user)
+        
         if(!user){
             throw new AppError('No user found for the given email',StatusCodes.BAD_REQUEST);
         }
@@ -67,7 +67,7 @@ async function signIn(data) {
 
         
         
-    console.log("{jwt_token,user:user}",{jwt_token,user:user})
+
         return {jwt_token,user:user};
 
     } catch (error) {

@@ -14,7 +14,7 @@ const flightSlice = createSlice({
   initialState,
     reducers: {
     setFlights: (state, action) => {
-      console.log("trigger flight slice-->",action.payload)
+    
       state.flights = action.payload;
     },
     setLoading: (state, action) => {

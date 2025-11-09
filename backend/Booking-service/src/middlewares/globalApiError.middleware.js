@@ -8,7 +8,7 @@ const { ErrorResponse } = require('../utils/common');
  * Global API handler middleware for consistent error handling
  */
 const globalApiErrorHandler = (err, req, res, next) => {
-  console.log(`Error in API request: ${req.method} ${req.url}`);
+
   
   // Log the error details for debugging
   console.error("globalApiErrorHandlere", err);

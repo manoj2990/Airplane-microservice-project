@@ -20,7 +20,7 @@ export function signup(sinupdata){
         sinupdata
       );
 
-      console.log("response at authApi --->", response.data);
+     
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed create user");
@@ -60,7 +60,7 @@ export function login(logindata,flightId,navigate){
         logindata
       );
 
-      console.log("response at authApi --->", response.data);
+    
 
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed Auth user");

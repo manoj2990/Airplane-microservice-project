@@ -1,0 +1,80 @@
+
+services:
+  Api-gateway:
+    build: ./backend/Api-gateway
+    image: airline-api-gateway:latest
+    container_name: api-gateway-container
+    env_file:
+      - .env.api-gateway
+    ports:
+      - 3001:3001
+    restart: always
+    depends_on:
+      - Flight-service
+      - Booking-service
+      - Notification-service
+      
+    networks:
+      - airline-network
+
+  Flight-service:
+    build: ./backend/Flight-service
+    image: airline-flight-service:latest
+    container_name: flight-service-container
+    env_file:
+      - .env.flight-service
+    ports:
+      - 3000:3000
+    restart: always
+    depends_on:
+      - Booking-service
+      - Notification-service
+    networks:
+      - airline-network
+
+  Booking-service:
+    build: ./backend/Booking-service
+    image: airline-booking-service:latest
+    container_name: booking-service-container
+    env_file:
+      - .env.booking-service
+    restart: always
+    ports:
+      - 4000:4000
+    depends_on:
+    
+      - Notification-service
+    
+    networks:
+      - airline-network
+
+
+  Notification-service:
+    build: ./backend/Notification-service
+    image: airline-notification-service:latest
+    container_name: notification-service-container
+    env_file:
+      - .env.notification-service
+    restart: always
+    ports:
+      - 3002:3002
+    networks:
+      - airline-network
+
+
+  Airline-frontend:
+    build: ./frontend/
+    image: airline-frontend:latest
+    container_name: airline-frontend-container
+    
+    ports:
+      - 5173:80
+    restart: always
+    networks:
+      - airline-network
+
+
+networks:
+  airline-network:
+    name: airline-network
+    driver: bridge

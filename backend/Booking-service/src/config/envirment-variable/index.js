@@ -10,5 +10,6 @@ module.exports = {
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     WINDOW_SIZE_IN_HOURS: process.env.WINDOW_SIZE_IN_HOURS,
-    
+    QUEUE_NAME: process.env.QUEUE_NAME,
+    RABBITMQ_URL: process.env.RABBITMQ_URL
 }

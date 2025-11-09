@@ -47,7 +47,7 @@ class CrudRepository {
             }
         })
         
-        console.log("Update response:", response);
+   
         return response;
     }
 }

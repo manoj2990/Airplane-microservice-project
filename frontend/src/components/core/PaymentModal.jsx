@@ -9,13 +9,13 @@ import { useEffect } from "react";
 export const PaymentModal = ({ totalFare, onClose }) => {
   const [loading, setLoading] = useState(false);
   const ticketInfo = useSelector( (state)=> state.ticket)
-  console.log("payment card infor ---->",ticketInfo.ticketinfo)
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
 
   useEffect(() => {
-  console.log("Loading changed:", loading);
+
 }, [loading]);
 
 

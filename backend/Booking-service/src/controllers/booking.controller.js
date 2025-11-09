@@ -6,7 +6,7 @@ const {checkIfPaid} = require('../utils/common/');
 const {RedisServer} = require("../config");
 const {seat_lock, seat_Booked} = require('../socket')
 async function createBooking(req, res) {
-    console.log(`entring into createbooking controller -->`,req.body,req.user)
+
     try {
       
         const booking = await BookingService.createBooking({
@@ -25,13 +25,13 @@ async function createBooking(req, res) {
         .json(SuccessResponse);
 
     } catch (error) {
-        // console.log(`error in createBooking controller -->`,error)
+      
          ErrorResponse.error = {
             StatusCodes: error.statusCode,
             message: error.message,
          }
          
-          console.log(`ErrorResponse in createBooking controller -->`,ErrorResponse)
+        
          return res
             .status(error.statusCode)
             .json(ErrorResponse)
@@ -47,7 +47,7 @@ async function makePayment(req, res) {
         const userInfo = req.headers['x-user-info'] ? JSON.parse(req.headers['x-user-info']) : undefined;
       
         const idempotencykey = req.headers['x-idempotency-key'];
- console.log("present at payment controller--->", req.body, userInfo,idempotencykey)
+
         if (!idempotencykey) {
             ErrorResponse.error = {
                 StatusCodes: StatusCodes.BAD_REQUEST,
@@ -105,7 +105,7 @@ async function makePayment(req, res) {
         ErrorResponse.error = {
             message: error.message,
         }
-        console.log(error)
+      
         return res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json(ErrorResponse);
@@ -115,9 +115,9 @@ async function makePayment(req, res) {
 
 async function getSeatMap(req, res) { 
     try {
-        console.log(`entring into getSeatMap controller -->`,req.params.flightId)
+        
         const seatMap = await BookingService.getSeatMap(req.params.flightId);
-        console.log(`seatMap -->`,seatMap)
+       
         SuccessResponse.data = seatMap;
         return res
         .status(StatusCodes.OK)

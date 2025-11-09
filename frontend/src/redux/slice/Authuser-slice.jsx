@@ -12,7 +12,7 @@ const AuthSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action) => {
-        console.log("trigeer setuser --->",action.payload)
+      
       state.userDetails = action.payload;
       localStorage.setItem("userId",action.payload.id);
      

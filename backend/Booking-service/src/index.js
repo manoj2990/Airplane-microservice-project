@@ -39,28 +39,28 @@ io.on("connection", (socket) => {
 
 
 RedisServer.on("connect", () => {
-  console.log("✅ Redis connected on port " + RedisServer.options.port);
+  
   RedisServer.setex("Booking-service Database", 10000, "Booking-service Database connected");
 });
 
 RedisServer.on("error", (err) => {
-  console.error("❌ Redis error:", err);
+  console.error("Redis error:", err);
 });
 
 
 // Use the global API error handler middleware
 app.use(GlobalApiErrorHandler);
 
-server.listen(PORT, async() => {
-  console.log(`✅ Server running on port ${PORT}`);
+server.listen(PORT, "0.0.0.0", async() => {
+  console.log(`Server running on port ${PORT}`);
 
   scheduleCronJob().then(() => {
-    console.log("✅ Cron job scheduled");
+    console.log("Cron job scheduled");
   }); 
 
-  // Queue.connectToQueue().then(() => {
-  //   console.log("✅ Connected to RabbitMQ");
-  // });
+  Queue.connectToQueue().then(() => {
+    console.log("Connected to RabbitMQ");
+  });
 });
 
 module.exports = io

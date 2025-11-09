@@ -13,10 +13,7 @@ export const axiosInstance = axios.create({
 // Add request interceptor for error handling
 axiosInstance.interceptors.request.use(
     (config) => {
-        console.log('Making request to:', config.url);
-        console.log('Request method:', config.method);
-        console.log('Request data:', config.data);
-        console.log('Request params:', config.params);
+    
         return config;
     },
     (error) => {
@@ -28,23 +25,18 @@ axiosInstance.interceptors.request.use(
 // Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
     (response) => {
-        console.log('Response received:', response.status, response.data);
+
         return response;
     },
     (error) => {
-        console.error('Response error:', error.response?.status, error.response?.data);
-        console.error('Error message:', error.message);
+     ;
         return Promise.reject(error);
     }
 );
 
 export const apiConnector = (method, url, bodyData, headers, params) => {
     try {
-        console.log("apiconnector method -->",method)
-        console.log("apiconnector url -->",url)
-        console.log("apiconnector bodyData -->",bodyData)
-        console.log("apiconnector headers -->",headers)
-        console.log("apiconnector params -->",params)
+  
 
         // Validate required parameters
         if (!method || !url) {

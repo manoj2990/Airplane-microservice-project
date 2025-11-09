@@ -207,19 +207,19 @@ async function deleteFlight(id) {
 
 async function updateFlight(id,data) {
     try {
-        console.log("Updating flight in service with ID:", id, "and data:", data);
+      
         const response = await flightRepository.update(id,data);
     
         if (response[0] === 0){
          
             throw new ApiError("No flight found to update", StatusCodes.NOT_FOUND);
         }
-        console.log("Flight update successful for ID:", id);
+        
         return response
 
     } catch (error) {
         if(error instanceof ApiError){
-            console.log("ApiError caught in updateFlight:", error);
+          
             throw error;
         }
         throw new ApiError("Faild to update flight", StatusCodes.INTERNAL_SERVER_ERROR);

@@ -28,7 +28,7 @@ export function getFlightbyId(flightId, navigate) {
         `${FLIGHT_BY_ID_SERACH_API}/${flightId}`
       );
 
-      console.log("response at flightApi --->", response.data);
+
 
       if (!response.data.success) {
         throw new Error(
@@ -93,7 +93,7 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
           response.data.message || "Failed to load flight details"
         );
       }
-   console.log("response.data.data --->", response.data.data);
+
      dispatch(setticketinfo({...response.data.data,seats:bookingData.seatIds}))
 
       toast.success("successfully create booking...");
@@ -101,7 +101,7 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
     
     
     } catch (error) {
-      console.log("Error in Booking", error.response.data.error.message);
+
      
       toast.error(error.response.data.error.message || error.message);
       dispatch(setError(error.message));
@@ -117,7 +117,7 @@ export function createbooking(bookingData, navigate, handlepaymentmodel) {
 
 export function processPayment(paymentData, onSuccess, navigate) {
   return async (dispatch) => {
-     console.log("Payment API  --->", paymentData);
+
     const toastId = toast.loading("Processing payment...");
     dispatch(setLoading(true));
    

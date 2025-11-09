@@ -10,9 +10,11 @@ const app = express();
 
 const amqplib = require('amqplib');
 const { ErrorResponse } = require("./utils/common/index.js");
-const {AppError} = require("./utils/errors/app-error.js")
+const AppError = require("./utils/errors/app-error.js")
 
-(async () => {
+
+const messageQueueConnection = async () => {
+
   try {
     const connection = await amqplib.connect(RABBITMQ_URL);
     const channel = await connection.createChannel();
@@ -29,21 +31,26 @@ const {AppError} = require("./utils/errors/app-error.js")
             data.subject, 
             data.content
            );
-          console.log("Processing done!");
+     
           channel.ack(message);
         }
       }, 
       { noAck: false } 
     );
   } catch (error) {
+  
     ErrorResponse({
       message: "Error in consumer",
       error: error.message,
     });
 
-    throw new AppError("Error in consumer", error.statusCode || 500);
+    throw new AppError("Error in consumer" || error.message || ErrorResponse, error.statusCode || 500);
   }
-})();
+
+}
+
+
+
 
 
 
@@ -82,11 +89,11 @@ app.use(GlobalApiErrorMiddleware);
 const startServer = async () => {
   try {
      app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
        
     });
 
-    
+    messageQueueConnection();
   } catch (error) {
     ErrorResponse({
       message: "Error in server",

@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 
 
 export const FlightDetailsModal = ({ onClose, flights }) => {
-  console.log("flightdata at modal--->", flights);
+ 
   
   // Validate flights prop
   if (!flights) {
@@ -36,13 +36,11 @@ export const FlightDetailsModal = ({ onClose, flights }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  console.log("fareDetails--->", fareDetails?.taxes);
+ 
 
   function handlebooking(flightId){
     try {
-      console.log("flightId received:", flightId);
-      console.log("flightId type:", typeof flightId);
-      console.log("flightId value:", flightId);
+ 
       
       if (!flightId) {
         console.error("No flightId provided!");

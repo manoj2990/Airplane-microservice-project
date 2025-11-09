@@ -5,18 +5,17 @@ const { ErrorResponse } = require("../utils/common");
 
 
 const WINDOW_SIZE_IN_HOURS = 2;
-const MAX_WINDOW_REQUEST_COUNT = 2;
+const MAX_WINDOW_REQUEST_COUNT = 10;
 const WINDOW_LOG_INTERVAL_IN_HOURS = 1;
 
 if (!RedisServer.status || RedisServer.status !== "ready") {
-  console.log("⚠️ Redis not ready yet:", RedisServer.status);
+    throw new AppError("Redis server is not connected", StatusCodes.INTERNAL_SERVER_ERROR);
 }
 
 
 const rateLimiter = async (req,res,next)=>{
 
-   console.log("🔥 Rate limiter triggered for:", req.originalUrl);
-    console.log("Client IP:", req.ip);
+   
     try {
             
 const ip = req.ip
@@ -34,7 +33,7 @@ const key = `rate-limit:${ip}`
     }]
 
     await RedisServer.set(key, JSON.stringify(new_record));
-    await RedisServer.expire(key, WINDOW_SIZE_IN_HOURS * 60);
+    await RedisServer.expire(key, WINDOW_SIZE_IN_HOURS * 60 * 60);
 
     
     return next();
@@ -46,7 +45,7 @@ const key = `rate-limit:${ip}`
  let Data = JSON.parse(existing_record);
 
  //current time ke respepective window start time eg: 10:30 then 
- let window_start = currentTime - (WINDOW_SIZE_IN_HOURS * 60 );
+ let window_start = currentTime - (WINDOW_SIZE_IN_HOURS * 60 * 60);
 
  //now we have the only record that is under the current window
  Data = Data.filter( (record)=>(record.starting_timestamp >= window_start))
@@ -63,7 +62,7 @@ const key = `rate-limit:${ip}`
 
  //agat total req limit ke under hai so update the req_cout
  const last_Entry = Data[Data.length - 1];
- const Internal_start = currentTime - WINDOW_LOG_INTERVAL_IN_HOURS * 60 ;
+ const Internal_start = currentTime - WINDOW_LOG_INTERVAL_IN_HOURS * 60 * 60;
 
 if(last_Entry && last_Entry.starting_timestamp >= Internal_start){
     last_Entry.request_count++;
@@ -76,7 +75,7 @@ else{
 }
 
 await RedisServer.set(key, JSON.stringify(Data));
-await RedisServer.expire(key, WINDOW_SIZE_IN_HOURS * 60);
+await RedisServer.expire(key, WINDOW_SIZE_IN_HOURS * 60 * 60);
 
 return next();
    

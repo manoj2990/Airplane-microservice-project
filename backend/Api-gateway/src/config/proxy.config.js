@@ -40,11 +40,11 @@ module.exports = function(app) {
             changeOrigin: true,
             pathRewrite: { "^/flightService": "" }, // Removes '/flightService' from path before proxying
             logLevel: 'debug',
-            // timeout: Number(TIMEOUT),
-            // proxyTimeout: Number(PROXY_TIMEOUT),
+            timeout: Number(TIMEOUT),
+            proxyTimeout: Number(PROXY_TIMEOUT),
             on: {
                 proxyReq: (proxyReq, req) => {
-                    console.log("Entering API gateway proxyReq---------------------->");
+         ;
                      proxyReq.setHeader("x-internal-secret", API_GATEWAY_INTERNAL_SECRET);
                 }
             },
@@ -69,7 +69,7 @@ module.exports = function(app) {
                     // Convert user object to string (like JSON)
                     proxyReq.setHeader('x-user-info', JSON.stringify(req.user));
                     }
-                    console.log("leaving apigatway---------------------->")
+                    
                 },
                 error: (err, req, res) => {
                 

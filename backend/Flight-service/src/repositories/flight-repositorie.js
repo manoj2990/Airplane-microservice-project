@@ -78,8 +78,7 @@ class FlightRepository extends CrudRepository{
 
 
     async getFilterFlights(filter,sortingFliter){
-        console.log("filter --->",filter)
-        console.log("sortingFliter --->",sortingFliter)
+       
 
         
         const response = await Flight.findAll({

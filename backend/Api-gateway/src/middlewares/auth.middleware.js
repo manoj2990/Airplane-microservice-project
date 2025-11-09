@@ -17,7 +17,7 @@ const protectedFlightRoutes = [
 
 
 function conditionalAuth(req, res, next) {
-    console.log(`calling cond midd --> ${req.method} ==> ${req.path}`);
+
   // Check if this request matches any of the protected routes
   const needsAuth = protectedFlightRoutes.some(
     (r) => req.method === r.method && r.path.test(req.path)
@@ -25,7 +25,7 @@ function conditionalAuth(req, res, next) {
 
   // If match found → call isAuth (normal JWT auth)
   if (needsAuth) {
-    console.log("Conditional Auth: Authentication required for this route.");
+  
 
     return isAuth(req, res, () => isAdmin(req, res, next));
   }
@@ -78,7 +78,7 @@ function validateSignUpRequest(req, res, next) {
 
 
 async function isAuth(req, res, next) {
-   console.log("isAuth middleware called");
+
     try {
         const token = req.headers['x-access-token'];
         if (!token) {
@@ -90,7 +90,7 @@ async function isAuth(req, res, next) {
             throw new AppError('User not found for the provided token', StatusCodes.UNAUTHORIZED);
         }
 
-      console.log("Authenticated user:", user.dataValues);
+      
          req.user= user.dataValues;
          
         next();
@@ -108,17 +108,17 @@ async function isAuth(req, res, next) {
 
 
 async function isAdmin(req, res, next) {
-    console.log("isAdmin middleware called");
+ 
     try {
         if (!req.user || !req.user.id) {
             throw new AppError('User not authenticated', StatusCodes.UNAUTHORIZED);
         }
-        console.log("Checking admin status for user ID:", req.user.id);
+       
         const isAdmin = await UserService.isAdmin(req.user.id);
         if (!isAdmin) {
             throw new AppError('User is not an admin', StatusCodes.FORBIDDEN);
         }
-        console.log("User is an admin:", req.user.id);
+       
         req.isAdmin = isAdmin;
         next();
     } catch (error) {

@@ -18,3 +18,5 @@ logs/
 # IDE/editor folders
 .vscode/
 .idea/
+
+src/config/config.json

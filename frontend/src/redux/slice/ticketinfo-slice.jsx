@@ -13,7 +13,7 @@ const TicketSlice = createSlice({
   initialState,
   reducers: {
     setticketinfo: (state, action) => {
-      console.log("Triggered setBooking slice -->", action.payload);
+     
       state.ticketinfo = action.payload;
     },
   

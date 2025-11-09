@@ -2,19 +2,21 @@
 const amqplib = require('amqplib');
 
 let channel, connection;
-const queue = 'booking_queue';
-const rabbitmqUrl = 'amqp://admin:admin@localhost:5672';
+const { RABBITMQ_URL, QUEUE_NAME } = require("../config/envirment-variable");
+
 
 const connectToQueue = async () => {
   try {
- 
-    connection = await amqplib.connect(rabbitmqUrl);
-    channel = await connection.createChannel();
-    await channel.assertQueue(queue);
 
-  
+    
+ 
+    connection = await amqplib.connect(RABBITMQ_URL);
+    channel = await connection.createChannel();
+    await channel.assertQueue(QUEUE_NAME || 'booking_queue');
+
+
   } catch (error) {
-    throw new Error("❌ connectToQueue error -->", error);
+    throw new Error(" connectToQueue error -->", error);
   }
 }
 
@@ -25,10 +27,10 @@ const sendMessageToQueue = async (message) => {
     if(!channel){
       await connectToQueue();
     }
-    await channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
+    await channel.sendToQueue(QUEUE_NAME || 'booking_queue', Buffer.from(JSON.stringify(message)));
 
   } catch (error) {
-    throw new Error("❌ sendMessageToQueue error -->", error);
+    throw new Error("sendMessageToQueue error -->", error);
   }
 }
 

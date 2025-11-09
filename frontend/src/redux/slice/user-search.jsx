@@ -13,7 +13,7 @@ const userSearchSlice = createSlice({
   initialState,
     reducers: {
     setuserSearch: (state, action) => {
-      console.log("user search slice triger",action)
+     
       state.userSearch = action.payload;
     },
 

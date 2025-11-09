@@ -60,7 +60,7 @@ const seats = flightDetails.seats.map((seat) => ({ seatId:`${seat.row}${seat.col
 
 
 async function createBooking(data) {
-console.log(`entring into createbooking -->`,data)
+
 
 try {
 
@@ -122,12 +122,12 @@ try {
      }
      )
 
-     console.log(`<-------flight data ------->`,booking)
+    
     return booking;
 
 
 } catch (error) {
-    console.log(error)
+    
     if(error instanceof ApiError){
       throw error;
     }
@@ -251,11 +251,11 @@ async function makePayment(data) {
 
         const finalData = aggregateData(data,bookingDetails, flightDetails.data.data);
        
-        // await Queue.sendMessageToQueue({
-        //     recepientEmail: data.userEmail,
-        //     subject: 'Flight Booking Confirmed - Your E-Ticket',
-        //     content: finalData,
-        // });
+        await Queue.sendMessageToQueue({
+            recepientEmail: data.userEmail,
+            subject: 'Flight Booking Confirmed - Your E-Ticket',
+            content: finalData,
+        });
 
         await transaction.commit();
                     return true;
@@ -292,7 +292,7 @@ try {
     return true;
 
 } catch (error) {
-    console.log(error)
+  
     // await t.rollback();
     throw new ApiError("Error while cancelling booking", StatusCodes.INTERNAL_SERVER_ERROR);
 }
@@ -312,6 +312,7 @@ async function  cancelOldBookings() {
 
         return res;
     } catch (error) {
+       
         throw new ApiError("Error while cancelling old bookings", StatusCodes.INTERNAL_SERVER_ERROR);
     }
 }
