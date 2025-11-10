@@ -132,7 +132,7 @@ jobs:
     steps:
       - name: Trigger Api gateway Render deploy
         run: |
-          curl -V -X POST \
+          curl -v -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
              https://api.render.com/v1/services/srv-${{secrets.RENDER_API_GATEWAY_SERVICE_ID}}/deploys
