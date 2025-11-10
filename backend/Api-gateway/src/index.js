@@ -56,6 +56,7 @@ const startServer = async () => {
     try {
         app.listen(PORT, "0.0.0.0", () => {
             console.log(`Server running on port ${PORT}`);
+            console.log(`API Gateway Service is up and running.`, PORT);
         });
     } catch (error) {
         console.error("Failed to start server:", error);
