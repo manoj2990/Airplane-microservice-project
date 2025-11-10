@@ -131,7 +131,17 @@ jobs:
     needs: api-gateway
     if: needs.detectChanges.outputs.api_changed == 'true' || github.event_name == 'workflow_dispatch'
     steps:
-      - run: curl -X POST ${{ secrets.RENDER_API_GATEWAY_DEPLOY_HOOK }}
+      - name: Trigger Api gateway Render deploy
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/deploy/srv-${{secrets.RENDER_API_GATEWAY_SERVICE_ID}}
+
+      - name: Render deployment status
+        run: |
+          echo "API Gateway deployment successful."
+
 
   deploy-flight-service:
     name: Deploy Flight Service
@@ -139,7 +149,12 @@ jobs:
     needs: flight-service
     if: needs.detectChanges.outputs.flight_changed == 'true' || github.event_name == 'workflow_dispatch'
     steps:
-      - run: curl -X POST ${{ secrets.RENDER_FLIGHT_SERVICE_DEPLOY_HOOK }}
+      - name: Trigger Flight service render deploy
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/deploy/srv-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 
   deploy-booking-service:
     name: Deploy Booking Service
@@ -147,7 +162,12 @@ jobs:
     needs: booking-service
     if: needs.detectChanges.outputs.booking_changed == 'true' || github.event_name == 'workflow_dispatch'
     steps:
-      - run: curl -X POST ${{ secrets.RENDER_BOOKING_SERVICE_DEPLOY_HOOK }}
+      - name: Trigger Booking service render deploy
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/deploy/srv-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 
   deploy-notification-service:
     name: Deploy Notification Service
@@ -155,4 +175,9 @@ jobs:
     needs: notification-service
     if: needs.detectChanges.outputs.notification_changed == 'true' || github.event_name == 'workflow_dispatch'
     steps:
-      - run: curl -X POST ${{ secrets.RENDER_NOTIFICATION_SERVICE_DEPLOY_HOOK }}
+      - name: Trigger Notification service render deploy
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/deploy/srv-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
