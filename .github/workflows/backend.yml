@@ -135,7 +135,7 @@ jobs:
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            https://api.render.com/deploy/srv-${{secrets.RENDER_API_GATEWAY_SERVICE_ID}}/deploys
+             https://api.render.com/v1/services/srv-${{secrets.RENDER_API_GATEWAY_SERVICE_ID}}/deploys
 
       - name: Render deployment status
         if: success()
