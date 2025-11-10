@@ -139,6 +139,7 @@ jobs:
             https://api.render.com/deploy/srv-${{secrets.RENDER_API_GATEWAY_SERVICE_ID}}
 
       - name: Render deployment status
+        if: success()
         run: |
           echo "API Gateway deployment successful."
 
