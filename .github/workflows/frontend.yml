@@ -94,6 +94,10 @@ jobs:
               run: |
                curl -X POST ${{ env.VERCEL_DEPLOY_HOOK_FRONTEND }}
 
+            - name: deploy success message
+              if: success()
+              run: echo "Frontend Deployed Successfully to Vercel"
+
         
         
         
