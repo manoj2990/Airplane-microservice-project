@@ -8,10 +8,6 @@ const WINDOW_SIZE_IN_HOURS = 2;
 const MAX_WINDOW_REQUEST_COUNT = 10;
 const WINDOW_LOG_INTERVAL_IN_HOURS = 1;
 
-if (!RedisServer.status || RedisServer.status !== "ready") {
-    throw new AppError("Redis server is not connected", StatusCodes.INTERNAL_SERVER_ERROR);
-}
-
 
 const rateLimiter = async (req,res,next)=>{
 
