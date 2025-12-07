@@ -147,19 +147,19 @@ const isRateLimitError = errorStatus === 429;
 
 
   return (
-   <div className='bg-gray-100 mt-30'>
+   <div className="min-h-screen bg-[hsl(var(--color-bg))] pt-6 pb-10">
    {/* Sort by section - only show if no error */}
    {!error && (
      <div className=' p-4 text-right'>
       <p>Sortby:
         <span 
         onClick={ () => sortPrice()}
-        className=' cursor-pointer font-semibold'>{ `${lowestPrice ? " Lowest" : " Highest"}` }</span> 
+        className="cursor-pointer font-semibold text-[hsl(var(--color-primary))] hover:underline">{ `${lowestPrice ? " Lowest" : " Highest"}` }</span> 
         </p>
      </div>
    )}
    
-   <div className=' mt-2 flex  h-lvh'>
+   <div className="mt-4 flex min-h-[70vh] flex-col gap-6 px-4 md:flex-row md:px-10 lg:px-16">
     {/* Sidebar - ALWAYS visible to maintain layout */}
     <Sidebar />
    
@@ -168,7 +168,7 @@ const isRateLimitError = errorStatus === 429;
       // Handle 429 Rate Limit Error with special UI
       isRateLimitError ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full text-center">
+          <div className="card-elevated max-w-2xl w-full p-8 text-center">
             {/* Error Icon */}
             <div className="mb-6">
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-orange-100">
@@ -234,7 +234,7 @@ const isRateLimitError = errorStatus === 429;
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
                 retryCountdown > 0 || loading
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-[#009688] text-white hover:bg-[#00796b]"
+                  : "bg-[hsl(var(--color-primary))] text-white hover:bg-[hsl(var(--color-primary-dark))]"
               }`}
             >
               {loading ? "Retrying..." : retryCountdown > 0 ? `Retry in ${retryCountdown}s` : "Retry Search"}
@@ -249,7 +249,7 @@ const isRateLimitError = errorStatus === 429;
       ) : error && !isRateLimitError ? (
         // Handle other errors (keep sidebar visible)
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full text-center">
+          <div className="card-elevated max-w-2xl w-full p-8 text-center">
             {/* Error Icon */}
             <div className="mb-6">
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">

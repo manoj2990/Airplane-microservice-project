@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { LuCalendarDays } from "react-icons/lu";
 import { FiMapPin } from "react-icons/fi";
+import { GiAirplaneDeparture } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 import { getAddress, formatDate, formatTime } from "../utils/Helperfunction";
 import { fareDetails } from "../constant/price";
@@ -15,32 +17,33 @@ import {
 } from "../utils/SeatMapper";
 import { createbooking } from "../service/operation/flightApi";
 import { PaymentModal } from "../components/core/PaymentModal";
-import { setFrozenSeats as setBackendFrozen , 
+import {
+  setFrozenSeats as setBackendFrozen,
   setBookedSeats as setBackendBooked,
-  setReleasedSeats} from "../redux/slice/booking-slice";
+  setReleasedSeats,
+} from "../redux/slice/booking-slice";
 
-import {socket} from "../socket.io"
+import { socket } from "../socket.io";
 
 export const SeatMatrixPage = () => {
-  const [bookedSeats, setBookedSeats] = useState([]); // permanently booked
-  const [selectedSeats, setSelectedSeats] = useState([]); // user-selected
-  const [frozenSeats, setFrozenSeats] = useState([]); // temporarily frozen
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [frozenSeats, setFrozenSeats] = useState([]);
   const [showFareDetails, setShowFareDetails] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openPayment, setOpenPayment] = useState(false);
 
-
-
-
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { booking = {}, bookedSeats: backendBooked = [], frozenSeats: backendFrozen = [], loading: bookingLoading = false } =
-    useSelector((state) => state.booking || {});
+  const {
+    booking = {},
+    bookedSeats: backendBooked = [],
+    frozenSeats: backendFrozen = [],
+    loading: bookingLoading = false,
+  } = useSelector((state) => state.booking || {});
 
   const { userSearch = {} } = useSelector((state) => state.userSearch || {});
-
 
   // === Seat Layout ===
   const seatLayout = {
@@ -86,9 +89,6 @@ export const SeatMatrixPage = () => {
     ],
   };
 
-
-
-
   // === Fetch seat data ===
   useEffect(() => {
     try {
@@ -102,30 +102,22 @@ export const SeatMatrixPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [backendBooked, backendFrozen,seatLayout]);
+  }, [backendBooked, backendFrozen]);
 
+  // === Socket events ===
+  socket.on("seat_lock", (data) => {
+    dispatch(setBackendFrozen(data));
+  });
 
+  socket.on("seat_unlock", (data) => {
+    dispatch(setReleasedSeats(data));
+  });
 
-  socket.on('seat_lock', (data)=>{
-    dispatch( setBackendFrozen(data))
-  })
+  socket.on("seat_Booked", (data) => {
+    dispatch(setBackendBooked(data));
+  });
 
-
-
-    socket.on('seat_unlock', (data)=>{
-    dispatch( setReleasedSeats(data))
-  })  
-
-  socket.on('seat_Booked', (data)=>{
-  
-    dispatch( setBackendBooked(data))
-  })
-
-
-
-
-
-  // === Seat color logic ===
+  // === Seat color logic (same as current) ===
   const getSeatColor = (seatId) => {
     if (bookedSeats.includes(seatId)) return "#FF4B4B"; // red
     if (frozenSeats.includes(seatId)) return "#999999"; // gray
@@ -139,7 +131,10 @@ export const SeatMatrixPage = () => {
 
     const isSelected = selectedSeats.includes(seatId);
     if (!isSelected && selectedSeats.length >= (userSearch.Travelers || 1)) {
-      alert(`You can select only ${userSearch.Travelers || 1} seat(s).`);
+      toast.error(`You can select only ${userSearch.Travelers || 1} seat(s).`, {
+        duration: 3000,
+        position: 'top-center',
+      });
       return;
     }
 
@@ -157,14 +152,20 @@ export const SeatMatrixPage = () => {
   const handleBookingConfirm = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please log in first!");
+      toast.error("Please log in to continue booking", {
+        duration: 3000,
+        position: 'top-center',
+      });
       localStorage.setItem("flightId", booking.id);
-      navigate("/auth");
+      setTimeout(() => navigate("/auth"), 1000);
       return;
     }
 
     if (selectedSeats.length === 0) {
-      alert("Please select at least one seat.");
+      toast.error("Please select at least one seat", {
+        duration: 3000,
+        position: 'top-center',
+      });
       return;
     }
 
@@ -177,7 +178,6 @@ export const SeatMatrixPage = () => {
           noOfSeats: userSearch.Travelers,
           seatIds: seats,
         },
-        navigate,
         handlePaymentModal
       )
     );
@@ -188,7 +188,7 @@ export const SeatMatrixPage = () => {
 
   if (loading) return <p className="p-10 text-gray-600">Loading seat map...</p>;
 
-  // === Render Seats ===
+  // === Render Seats (SVG) ===
   const renderSeat = (seat) => (
     <g
       key={seat.id}
@@ -200,9 +200,9 @@ export const SeatMatrixPage = () => {
         y={seat.y}
         width={70}
         height={60}
-        rx={10}
+        rx={14}
         fill={getSeatColor(seat.id)}
-        stroke="#1f2937"
+        stroke="#0f172a"
         strokeWidth="2"
         className="transition-all hover:opacity-80"
       />
@@ -221,173 +221,234 @@ export const SeatMatrixPage = () => {
   );
 
   return (
-    <div className="flex p-4 mt-24">
-      {/* Left: Seat Map */}
-      <div className="bg-gray-200">
-        <div className="flex gap-6 mt-6 text-sm p-2">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded"></div> <span>Booked</span>
+    <div className="page-shell pt-24 pb-12 px-4 md:px-8 min-h-screen">
+      <div className="flex flex-col gap-8 lg:flex-row max-w-7xl mx-auto">
+        
+        {/* ==================== LEFT: SEAT SELECTION ==================== */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 flex-1">
+          {/* Header */}
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">Select Your Seats</h2>
+            
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-red-500 rounded-md shadow-sm"></div>
+                <span className="text-gray-700 font-medium">Booked</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-blue-300 rounded-md shadow-sm"></div>
+                <span className="text-gray-700 font-medium">Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-green-500 rounded-md shadow-sm"></div>
+                <span className="text-gray-700 font-medium">Selected</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-300 rounded"></div> <span>Available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-500 rounded"></div> <span>Selected</span>
+
+          {/* Airplane SVG */}
+          <div className="flex justify-center overflow-x-auto">
+            <svg
+              width="800"
+              viewBox="0 0 1612 1250"
+              xmlns="http://www.w3.org/2000/svg"
+              className="max-w-full h-auto"
+            >
+              <path
+                d="M1015.54 579.01H596.263V1841H1015.54L1015.54 579.01Z"
+                fill="#F1F5FB"
+              />
+              <path
+                d="M596.453 612.92C596.453 612.92 582.028 1.00025 804.403 1C1026.78 0.999753 1015.44 612.92 1015.44 612.92H596.453Z"
+                fill="#F1F5FB"
+              />
+
+              {seatLayout.leftSide.map(renderSeat)}
+              {seatLayout.rightSide.map(renderSeat)}
+            </svg>
           </div>
         </div>
 
-        <svg
-          width="800"
-          viewBox="0 0 1612 1250"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M1015.54 579.01H596.263V1841H1015.54L1015.54 579.01Z"
-            fill="#F1F5FB"
-          />
-          <path
-            d="M596.453 612.92C596.453 612.92 582.028 1.00025 804.403 1C1026.78 0.999753 1015.44 612.92 1015.44 612.92H596.453Z"
-            fill="#F1F5FB"
-          />
+        {/* ==================== RIGHT: TRIP SUMMARY (OLD MODAL STYLE, TUNED) ==================== */}
+        <div className="w-full lg:w-[400px] space-y-6">
+          <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-24 animate-fade-in">
 
-          {seatLayout.leftSide.map(renderSeat)}
-          {seatLayout.rightSide.map(renderSeat)}
-        </svg>
-      </div>
+            {/* Title */}
+            <h2 className="text-xl font-semibold mb-6 text-slate-900">
+              Trip Summary
+            </h2>
 
-      {/* Right: Flight Info & Payment */}
-      <div className="ml-10 p-5">
-        <h2 className="text-xl font-semibold mb-6">Flight Details</h2>
+            {booking ? (
+              <>
+                {/* Flight Card like old modal */}
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 mb-6">
+                  <h3 className="font-medium text-base mb-6 text-slate-900">
+                    To {getAddress(booking.arrivalAirport?.address || "")}
+                  </h3>
 
-        {booking ? (
-          <div className="bg-gray-50 p-5 rounded-lg mb-4">
-            <h3 className="font-medium text-base mb-6">
-              To {getAddress(booking.arrivalAirport?.address)}
-            </h3>
+                  <div className="relative">
+                    {/* Vertical line */}
+                    <div className="absolute left-[52px] top-8 bottom-8 w-px bg-gray-300"></div>
 
-            <div className="relative">
-              <div className="absolute left-[52px] top-8 bottom-8 w-px bg-gray-300"></div>
+                    {/* Date */}
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-12"></div>
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white rounded p-1 shadow-sm">
+                          <LuCalendarDays className="w-4 h-4 text-gray-700" />
+                        </div>
+                        <p className="text-sm text-gray-800">
+                          {formatDate(booking.departureTime)}
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12"></div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-white rounded p-1 z-10">
-                    <LuCalendarDays className="w-4 h-4 text-gray-700" />
-                  </div>
-                  <p className="text-sm text-gray-800">
-                    {formatDate(booking.departureTime)}
-                  </p>
-                </div>
-              </div>
+                    {/* Departure */}
+                    <div className="flex items-start gap-4 mb-5">
+                      <p className="font-semibold text-sm w-12 text-left pt-0.5">
+                        {formatTime(booking.departureTime)}
+                      </p>
+                      <div className="flex items-start gap-3">
+                        <FiMapPin className="w-4 h-4 text-gray-700" />
+                        <p className="text-sm text-gray-900">
+                          {booking.departureAirport?.name}{" "}
+                          <span className="text-gray-600">
+                            ({booking.departureAirport?.code})
+                          </span>
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="flex items-start gap-4 mb-5">
-                <p className="font-semibold text-sm w-12 text-left pt-0.5">
-                  {formatTime(booking.departureTime)}
-                </p>
-                <div className="flex items-start gap-3">
-                  <FiMapPin />
-                  <p className="text-sm text-gray-900">
-                    {booking.departureAirport?.name}{" "}
-                    <span className="text-gray-600">
-                      ({booking.departureAirport?.code})
-                    </span>
-                  </p>
-                </div>
-              </div>
+                    {/* Airline */}
+                    <div className="flex items-start gap-4 mb-5">
+                      <div className="w-12"></div>
+                      <div className="flex items-start gap-3">
+                        <div className="bg-white rounded p-1 shadow-sm">
+                          <GiAirplaneDeparture className="w-4 h-4 text-gray-700" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-900">
+                            {booking.flightNumber || "N/A"}
+                          </p>
+                          <p className="text-xs text-blue-600 font-medium mt-0.5">
+                            {userSearch?.classType || "Economy"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="flex items-start gap-4">
-                <p className="font-semibold text-sm w-12 text-left pt-0.5">
-                  {formatTime(booking.arrivalTime)}
-                </p>
-                <div className="flex items-start gap-3">
-                  <FiMapPin />
-                  <p className="text-sm text-gray-900">
-                    {booking.arrivalAirport?.name}{" "}
-                    <span className="text-gray-600">
-                      ({booking.arrivalAirport?.code})
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p>No booking details available.</p>
-        )}
-
-        {/* Selected Seats */}
-        <div className="mt-6 border-t pt-4">
-          <h3 className="font-semibold text-lg mb-3">Selected Seats</h3>
-          {selectedSeats.length > 0 ? (
-            <div className="flex flex-wrap gap-3 mb-4">
-              {selectedSeats.map((seat) => (
-                <div
-                  key={seat}
-                  className="px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg shadow-sm border border-green-400"
-                >
-                  {seat}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm">No seats selected yet.</p>
-          )}
-
-          {/* Total Fare */}
-          <div
-            className="flex justify-between items-center cursor-pointer mt-2 py-2 border-t"
-            onClick={() => setShowFareDetails((prev) => !prev)}
-          >
-            <span className="font-semibold text-base">Total Fare</span>
-            <span className="font-semibold text-base text-teal-600">
-              ₹{totalFare.toLocaleString()}
-            </span>
-          </div>
-
-          <AnimatePresence>
-            {showFareDetails && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <div className="space-y-2 text-sm mt-2">
-                  <div className="flex justify-between text-gray-700">
-                    <span>Base Fare × {userSearch.Travelers}</span>
-                    <span>
-                      ₹{(booking.price * (userSearch.Travelers || 1)).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-gray-700">
-                    <span>Taxes & Fees</span>
-                    <span>
-                      ₹{(fareDetails.taxes * (userSearch.Travelers || 1)).toLocaleString()}
-                    </span>
+                    {/* Arrival */}
+                    <div className="flex items-start gap-4">
+                      <p className="font-semibold text-sm w-12 text-left pt-0.5">
+                        {formatTime(booking.arrivalTime)}
+                      </p>
+                      <div className="flex items-start gap-3">
+                        <FiMapPin className="w-4 h-4 text-gray-700" />
+                        <p className="text-sm text-gray-900">
+                          {booking.arrivalAirport?.name || "Unknown"}{" "}
+                          <span className="text-gray-600">
+                            ({booking.arrivalAirport?.code || "N/A"})
+                          </span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
+              </>
+            ) : (
+              <p className="text-gray-500 italic mb-4">
+                No booking details available.
+              </p>
             )}
-          </AnimatePresence>
 
-          {/* Confirm Button */}
-          <button
-            className="w-full border rounded-md cursor-pointer p-2 mt-10 flex justify-center bg-[#009688] text-xl font-bold text-white"
-            onClick={handleBookingConfirm}
-          >
-            {bookingLoading ? "Loading..." : "Confirm & Pay"}
-          </button>
+            {/* Selected Seats */}
+            <div className="mt-2">
+              <h3 className="font-semibold text-sm mb-3 text-gray-600">
+                Selected Seats
+              </h3>
+
+              {selectedSeats.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedSeats.map((seat) => (
+                    <span
+                      key={seat}
+                      className="px-3 py-1 bg-blue-100 text-blue-700 font-semibold rounded-lg text-sm border border-blue-200 shadow-sm"
+                    >
+                      {seat}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg text-center border border-dashed border-gray-200">
+                  <p className="text-gray-400 text-sm">No seats selected</p>
+                </div>
+              )}
+            </div>
+
+            {/* Total Fare Card (Expandable) */}
+            <div
+              className="flex justify-between items-center cursor-pointer mt-6 p-4 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 transition-colors"
+              onClick={() => setShowFareDetails((prev) => !prev)}
+            >
+              <span className="font-semibold text-slate-900 text-sm">Total Fare</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xl text-blue-700">
+                  ₹{totalFare.toLocaleString()}
+                </span>
+                <span className="text-gray-400 text-xs rotate-90">
+                  ›
+                </span>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {showFareDetails && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-2 text-sm mt-3 p-3 bg-gray-50 rounded-lg text-gray-700 border">
+                    <div className="flex justify-between">
+                      <span>Base Fare × {userSearch.Travelers || 1}</span>
+                      <span>
+                        ₹
+                        {(
+                          (booking.price || 0) * (userSearch.Travelers || 1)
+                        ).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taxes & Fees</span>
+                      <span>₹{fareDetails.taxes.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Confirm Button */}
+            <button
+              className="w-full mt-6 bg-blue-600 text-white py-3.5 rounded-xl text-sm font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleBookingConfirm}
+              disabled={bookingLoading || selectedSeats.length === 0}
+            >
+              {bookingLoading ? "Processing..." : "Confirm & Pay"}
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Payment Modal */}
-      {openPayment && (
-        <PaymentModal
-          totalFare={totalFare}
-          onClose={() => setOpenPayment(false)}
-        />
-      )}
+        {/* Payment Modal */}
+        {openPayment && (
+          <PaymentModal
+            totalFare={totalFare}
+            onClose={() => setOpenPayment(false)}
+          />
+        )}
+      </div>
     </div>
   );
 };

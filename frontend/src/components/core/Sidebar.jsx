@@ -21,8 +21,8 @@ const AirportSelectionModal = ({ isOpen, onClose, onSelect, title, modalType }) 
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed bg-opacity-50 flex justify-center items-center z-50 top-[170px] ${modalType === "departure" ? "left-100" : "left-100"}`}>
-      <div className="bg-white w-96 rounded-xl shadow-2xl p-6 m-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="glass-panel w-96 max-w-full p-6 m-4 animate-fade-in">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
           <button
@@ -208,9 +208,9 @@ export const Sidebar = () =>{
     }
   }
   return (
-    <div className="relative w-1/3">
+    <div className="relative w-full md:w-1/3 max-w-sm">
       {/* Flight Search Form */}
-      <div className="  mx-auto   w-[90%] flex flex-col flex-wrap md:flex-nowrap  px-8 py-8 gap-6">
+      <div className="card-elevated mx-auto flex w-full flex-col gap-6 px-6 py-6 md:px-8 md:py-8">
         {/* From */}
         <div className="flex flex-col">
           <label className="text-sm text-gray-500">From</label>
@@ -220,7 +220,7 @@ export const Sidebar = () =>{
             value={formData.from}
             onClick={ showDeparture}
             placeholder="Select departure airport"
-            className=" bg-white h-10 cursor-pointer  border-b focus:outline-none focus:border-[#009688] transition"
+            className="mt-1 h-10 cursor-pointer border-b border-gray-200 pb-1 text-sm font-semibold text-gray-900 outline-none transition-colors focus:border-[hsl(var(--color-primary))]"
           />
         </div>
 
@@ -233,7 +233,7 @@ export const Sidebar = () =>{
             value={formData.to}
             onClick={showArrival}
             placeholder="Select arrival airport"
-            className="bg-white h-10 cursor-pointer  border-b focus:outline-none focus:border-[#009688] transition"
+            className="mt-1 h-10 cursor-pointer border-b border-gray-200 pb-1 text-sm font-semibold text-gray-900 outline-none transition-colors focus:border-[hsl(var(--color-primary))]"
           />
         </div>
 
@@ -253,7 +253,7 @@ export const Sidebar = () =>{
                 toast.error("Error updating date. Please try again.");
               }
             }}
-            className="bg-white h-10 border-b focus:outline-none focus:border-[#009688] transition"
+            className="mt-1 h-10 border-b border-gray-200 pb-1 text-sm font-semibold text-gray-900 outline-none transition-colors focus:border-[hsl(var(--color-primary))]"
           />
         </div>
 
@@ -278,7 +278,7 @@ export const Sidebar = () =>{
               }
             }}
             placeholder="1"
-            className="bg-white h-10 cursor-pointer   border-b focus:outline-none focus:border-[#009688] transition"
+            className="mt-1 h-10 cursor-pointer border-b border-gray-200 pb-1 text-sm font-semibold text-gray-900 outline-none transition-colors focus:border-[hsl(var(--color-primary))]"
           />
         </div>
 

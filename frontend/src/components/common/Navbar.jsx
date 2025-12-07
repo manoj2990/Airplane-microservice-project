@@ -62,18 +62,21 @@ export const Navbar = () => {
 
   return (
     <>
-      <nav className="flex justify-between items-center px-10 py-10 fixed z-50 bg-white  border-white rounded-xl shadow-gray-300 shadow-sm w-[90%] mx-1 ">
-        <h1 className="text-3xl font-bold text-[#009688] cursor-pointer" onClick={() => navigate("/")}>
+      <nav className="fixed left-1/2 top-6 z-50 flex w-[90%] max-w-7xl -translate-x-1/2 items-center justify-between glass-panel px-6 py-4 shadow-lg md:px-10 transition-all duration-300">
+        <h1 
+          className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] bg-clip-text text-transparent cursor-pointer tracking-tight" 
+          onClick={() => navigate("/")}
+        >
           SkyPlan
         </h1>
 
-        <div className="flex items-center gap-8 text-gray-700 font-medium ">
-          <button className="flex items-center gap-2 hover:text-[#009688]">
-            <FaRegUser />
+        <div className="hidden md:flex items-center gap-8 font-medium text-[hsl(var(--color-text-muted))]">
+          <button className="flex items-center gap-2 transition-colors hover:text-[hsl(var(--color-primary))]">
+            <FaRegUser className="text-lg" />
             {isAuthenticated ? userName : "Demo user"}
           </button>
-          <button className="flex items-center gap-2 hover:text-[#009688]">
-            <MdOutlineLocalPhone />
+          <button className="flex items-center gap-2 transition-colors hover:text-[hsl(var(--color-primary))]">
+            <MdOutlineLocalPhone className="text-lg" />
             Connect
           </button>
         </div>
@@ -84,7 +87,7 @@ export const Navbar = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={handleLogout}
-              className="rounded-md border border-red-300 px-5 py-2 text-red-600 hover:bg-red-50 transition-colors"
+              className="rounded-full border border-red-200 bg-red-50 px-6 py-2.5 text-red-600 font-medium hover:bg-red-100 hover:border-red-300 transition-all duration-200"
             >
               Log Out
             </button>
@@ -94,13 +97,13 @@ export const Navbar = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => handleNavigateToAuth(true)}
-              className="rounded-md border border-gray-300 px-5 py-2 hover:bg-gray-100 transition-colors"
+              className="hidden md:block text-sm font-semibold text-[hsl(var(--color-text-muted))] hover:text-[hsl(var(--color-primary))] transition-colors"
             >
               Sign Up
             </button>
             <button
               onClick={() => handleNavigateToAuth(false)}
-              className="rounded-md bg-black text-white px-5 py-2 hover:bg-gray-800 transition-colors"
+              className="btn-primary rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-[hsl(var(--color-primary)/0.3)]"
             >
               Log In
             </button>

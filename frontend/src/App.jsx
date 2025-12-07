@@ -9,7 +9,7 @@ import {ConfirmationPage} from './pages/confirmationpage'
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col  mx-20 relative  ">
+    <div className="page-shell flex flex-col relative px-4 md:px-10 lg:px-20 pb-10 pt-28">
   
       <Navbar />
 

@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { toast } from "react-hot-toast";
-import {searchFlight} from "../../service/operation/searchApi"
-import {extractCode} from "../../utils/ExtractAirportcode"
+import { searchFlight } from "../../service/operation/searchApi";
+import { extractCode } from "../../utils/ExtractAirportcode";
 import { useNavigate } from "react-router-dom";
 
 
 // Separate Airport Selection Modal Component
 const AirportSelectionModal = ({ isOpen, onClose, onSelect, title, modalType }) => {
+  const modalRef = useRef(null);
+  
   const airports = [
     { city: "Jaipur", code: "JAI" },
     { city: "Mumbai", code: "BOM" },
@@ -18,42 +20,69 @@ const AirportSelectionModal = ({ isOpen, onClose, onSelect, title, modalType }) 
     { city: "Hyderabad", code: "HYD" },
   ];
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed bg-opacity-50 flex justify-center items-center z-50 top-[170px] ${modalType === "departure" ? "left-20" : "left-100"}`}>
-      <div className="bg-white w-96 rounded-xl shadow-2xl p-6 m-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold transition"
-          >
-            ✕
-          </button>
-        </div>
+    <div 
+        ref={modalRef}
+        className="absolute bottom-full mb-2 left-0 mt-2 z-50 w-full min-w-[300px] bg-white shadow-xl border border-gray-200 rounded-2xl animate-fade-in p-4 origin-top"
+    >
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-100">
+        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">{title}</h3>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="text-gray-400 hover:text-gray-600 w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition"
+        >
+          ✕
+        </button>
+      </div>
 
-        <div className="max-h-80 overflow-y-auto">
-          {airports && Array.isArray(airports) && airports.length > 0 ? (
-            airports.map((airport) => {
-              if (!airport || !airport.code) {
-                return null;
-              }
-              return (
-                <div
-                  key={airport.code}
-                  onClick={() => onSelect && onSelect(airport)}
-                  className="p-3 hover:bg-teal-50 rounded-lg cursor-pointer transition border-b border-gray-100 last:border-0"
-                >
-                  <p className="font-semibold text-gray-800">{airport.city || "Unknown"}</p>
-                  <p className="text-sm text-gray-500">{airport.code || "N/A"}</p>
+      <div className="max-h-60 overflow-y-auto custom-scrollbar">
+        {airports && Array.isArray(airports) && airports.length > 0 ? (
+          airports.map((airport) => {
+            if (!airport || !airport.code) {
+              return null;
+            }
+            return (
+              <div
+                key={airport.code}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect && onSelect(airport);
+                }}
+                className="group flex items-center justify-between p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-colors mb-1"
+              >
+                <div className="flex flex-col">
+                    <span className="font-bold text-gray-800 group-hover:text-blue-700 transition-colors">{airport.city || "Unknown"}</span>
+                    <span className="text-xs text-gray-400">{airport.country || "India"}</span>
                 </div>
-              );
-            })
-          ) : (
-            <p className="p-3 text-gray-500 text-center">No airports available</p>
-          )}
-        </div>
+                <span className="px-2 py-1 bg-gray-100 group-hover:bg-blue-100 text-gray-600 group-hover:text-blue-600 text-xs font-bold rounded-lg transition-colors">
+                    {airport.code || "N/A"}
+                </span>
+              </div>
+            );
+          })
+        ) : (
+          <p className="p-3 text-gray-500 text-center text-sm">No airports available</p>
+        )}
       </div>
     </div>
   );
@@ -84,21 +113,6 @@ export const FlightSearchForm = () =>{
         toast.error("Please select both departure and arrival airports");
         return;
       }
-
-      // if (!formData.departure) {
-      //   toast.error("Please select a departure date");
-      //   return;
-      // }
-
-      // Validate date is not in the past
-      // const selectedDate = new Date(formData.departure);
-      // const today = new Date();
-      // today.setHours(0, 0, 0, 0);
-      
-      // if (selectedDate < today) {
-      //   toast.error("Departure date cannot be in the past");
-      //   return;
-      // }
 
       // Validate quantity
       const quantity = parseInt(formData.quantity, 10);
@@ -171,126 +185,137 @@ export const FlightSearchForm = () =>{
     }
   };
 
-  const showDeparture = ()=>{
+  const showDeparture = (e)=>{
+     e.stopPropagation();
      setShowDepartureModal(true)
-      setShowArrivalModal(false)
+     setShowArrivalModal(false)
   }
 
-   const showArrival = ()=>{
+   const showArrival = (e)=>{
+     e.stopPropagation();
      setShowDepartureModal(false)
-      setShowArrivalModal(true)
+     setShowArrivalModal(true)
   }
   return (
-    <div className="relative w-full">
+    <div className="w-full">
+
       {/* Flight Search Form */}
-      <div className="absolute bottom-[-60px] left-1/2 transform -translate-x-1/2 w-[90%] bg-white shadow-lg rounded-xl flex flex-wrap md:flex-nowrap justify-between items-center px-8 py-8 gap-6">
-        {/* From */}
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-500">From</label>
-          <input
-            readOnly
-            name="from"
-            value={formData.from}
-            onClick={ showDeparture}
-            placeholder="Select departure airport"
-            className="cursor-pointer font-semibold border-b focus:outline-none focus:border-[#009688] transition"
-          />
-        </div>
+      <div className="glass-panel mx-auto flex w-full max-w-6xl flex-col gap-8 px-8 py-6 md:flex-row md:items-end md:justify-between  relative z-20 top-5 bg-white/40   shadow-xl rounded-3xl">
+        
+        {/* Input Groups Container */}
+        <div className="flex flex-1 flex-col md:flex-row gap-6 md:gap-8 w-full ">
+          
+          {/* From */}
+          <div className="flex flex-1 flex-col relative">
+            {/* Departure Airport Modal - Now Relative */}
+            <AirportSelectionModal
+                isOpen={showDepartureModal}
+                onClose={() => setShowDepartureModal(false)}
+                onSelect={handleSelectDeparture}
+                title="Select Departure"
+                modalType="departure"
+            />
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 ml-1">From</label>
+            <input
+              readOnly
+              name="from"
+              value={formData.from}
+              onClick={showDeparture}
+              placeholder="Origin city"
+              className="w-full bg-white/80   rounded-xl px-4 py-3.5 text-lg font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 "
+            />
+            
+          </div>
 
-        {/* To */}
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-500">To</label>
-          <input
-            readOnly
-            name="to"
-            value={formData.to}
-            onClick={showArrival}
-            placeholder="Select arrival airport"
-            className="cursor-pointer font-semibold border-b focus:outline-none focus:border-[#009688] transition"
-          />
-        </div>
+          {/* To */}
+          <div className="flex flex-1 flex-col relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 ml-1">To</label>
+            <input
+              readOnly
+              name="to"
+              value={formData.to}
+              onClick={showArrival}
+              placeholder="Destination city"
+              className="w-full bg-white/80 backdrop-blur-sm border border-white/60 rounded-xl px-4 py-3.5 text-lg font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm transition-all hover:bg-white"
+            />
+            {/* Arrival Airport Modal - Now Relative */}
+            <AirportSelectionModal
+                isOpen={showArrivalModal}
+                onClose={() => setShowArrivalModal(false)}
+                onSelect={handleSelectArrival}
+                title="Select Destination"
+                modalType="arrival"
+            />
+          </div>
 
-        {/* Departure */}
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-500">Departure</label>
-          <input
-            type="date"
-            name="departure"
-            value={formData.departure}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, departure: e.target.value }))
-            }
-            className="font-semibold border-b focus:outline-none focus:border-[#009688] transition"
-          />
-        </div>
+          {/* Departure */}
+          <div className=" flex flex-col w-full md:w-48 relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 ml-1">Departure</label>
+            <input
+              type="date"
+              name="departure"
+              value={formData.departure}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, departure: e.target.value }))
+              }
+              className="w-full bg-white/80 backdrop-blur-sm border border-white/60 rounded-xl px-4 py-3.5 text-lg font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm transition-all hover:bg-white"
+            />
+          </div>
 
-        {/* Travelers */}
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-500">Travelers</label>
-          <input
-            type="number"
-            name="quantity"
-            min="1"
-            max="5"
-            value={formData.quantity}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, quantity: e.target.value }))
-            }
-            placeholder="1"
-            className="font-semibold border-b focus:outline-none focus:border-[#009688] transition"
-          />
-        </div>
-
-        {/* Class Type */}
-        <div>
-          <label className="text-sm text-gray-500 mt-2">Class Type</label>
-          <div className="flex gap-4 mt-1">
-            {["Economy"].map((type) => (
-              <label key={type} className="flex items-center gap-1 text-sm text-gray-700">
-                <input
-                  type="radio"
-                  name="classType"
-                  value={type}
-                  checked={formData.classType === type}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      classType: e.target.value,
-                    }))
-                  }
-                />
-                {type}
-              </label>
-            ))}
+          {/* Travelers */}
+          <div className=" flex flex-col w-full md:w-32 relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 ml-1">Travelers</label>
+            <input
+              type="number"
+              name="quantity"
+              min="1"
+              max="5"
+              value={formData.quantity}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, quantity: e.target.value }))
+              }
+              placeholder="1"
+              className="w-full bg-white/80 backdrop-blur-sm border border-white/60 rounded-xl px-4 py-3.5 text-lg font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm transition-all hover:bg-white"
+            />
           </div>
         </div>
 
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          className="bg-[#009688] text-white p-3 rounded-full hover:bg-[#00796b] transition px-10"
-        >
-         <FaArrowRight />
-        </button>
+        {/* Actions Container */}
+        <div className="flex flex-col md:flex-row items-center gap-6">
+           {/* Class Type */}
+           <div className="flex flex-col">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 ml-1">Class</label>
+            <div className="flex gap-2">
+              {['Economy'].map((type) => (
+                <label key={type} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-white/60 shadow-sm cursor-pointer hover:bg-white transition-all text-sm font-semibold text-slate-700">
+                  <input
+                    type="radio"
+                    name="classType"
+                    value={type}
+                    checked={formData.classType === type}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        classType: e.target.value,
+                      }))
+                    }
+                    className="accent-blue-600 w-4 h-4"
+                  />
+                  {type}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            className="h-16 w-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-blue-500/20 bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-105 active:scale-95 transition-all mt-4 md:mt-0"
+          >
+            <FaArrowRight />
+          </button>
+        </div>
       </div>
-
-      {/* Departure Airport Modal */}
-      <AirportSelectionModal
-        isOpen={showDepartureModal}
-        onClose={() => setShowDepartureModal(false)}
-        onSelect={handleSelectDeparture}
-        title="Select Departure Airport"
-       modalType="departure"
-      />
-
-      {/* Arrival Airport Modal */}
-      <AirportSelectionModal
-        isOpen={showArrivalModal}
-        onClose={() => setShowArrivalModal(false)}
-        onSelect={handleSelectArrival}
-        title="Select Arrival Airport"
-         modalType="arrival"
-      />
     </div>
   );
 }
