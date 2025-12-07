@@ -6,7 +6,7 @@ const {checkIfPaid} = require('../utils/common/');
 const {RedisServer} = require("../config");
 const {seat_lock, seat_Booked} = require('../socket')
 async function createBooking(req, res) {
-
+console.log("Create booking request received:", req.body);
     try {
       
         const booking = await BookingService.createBooking({
@@ -19,7 +19,7 @@ async function createBooking(req, res) {
         await seat_lock(req.body.flightId, req.body.seatIds)
 
         SuccessResponse.data = booking;
-        
+        console.log("Booking created successfully at controller:", booking.id);
         return res
         .status(StatusCodes.CREATED)
         .json(SuccessResponse);
@@ -42,6 +42,7 @@ async function createBooking(req, res) {
 
 
 async function makePayment(req, res) {
+    console.log("Payment request received:", req.body);
     try {
         
         const userInfo = req.headers['x-user-info'] ? JSON.parse(req.headers['x-user-info']) : undefined;
@@ -97,7 +98,7 @@ async function makePayment(req, res) {
         await seat_Booked(req.body.flightId, req.body.seatIds)
 
         SuccessResponse.data = payment;
-
+        console.log("Payment processed successfully for booking at controller:", req.body.bookingId);
         return res
         .status(StatusCodes.CREATED)
         .json(SuccessResponse);

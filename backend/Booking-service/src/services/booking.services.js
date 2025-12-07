@@ -61,11 +61,12 @@ const seats = flightDetails.seats.map((seat) => ({ seatId:`${seat.row}${seat.col
 
 async function createBooking(data) {
 
-
+    console.log("Create booking request received at service:", data);
 try {
 
      const booking = await db.sequelize.transaction(async t => { 
-
+        console.log("Transaction started for booking creation");
+        console.log(`${FLIGHT_SERVICE_URL}/flights/${data.flightId}`);
         const flight = await axios.get(`${FLIGHT_SERVICE_URL}/flights/${data.flightId}`);
      
         if(!flight){
@@ -85,6 +86,7 @@ try {
         //         totalCost: flight.data.data.price * data.noOfSeats,
         //     },{transaction: t});
 
+        console.log("Creating booking in repository");
         const response = await bookingRepository.createBooking({
             userId: data.userId,
             flightId: data.flightId,
@@ -93,12 +95,12 @@ try {
         },t);
 
 
-        
+        console.log("Booking created in repository with ID:", response.id);
 
     const seatIds = data.seatIds || []; // frontend must send seat IDs
-
+console.log("Reserving seats:", seatIds);
       for (const seatId of seatIds) {
-      
+      console.log("Reserving seat -->:", seatId);
        const res = await SeatBooking.create({
           userId: data.userId,
           flightId: data.flightId,
@@ -116,13 +118,13 @@ try {
             seats: data.noOfSeats , decrement:true
         })
         
-        
+        console.log("Seats reserved successfully for booking:", response.id);
 
     return response;
      }
      )
 
-    
+    console.log("Booking created successfully at service:", booking);
     return booking;
 
 
@@ -206,6 +208,7 @@ try {
 
 
 async function makePayment(data) {
+    console.log("Processing payment for booking:", data);
     const transaction = await db.sequelize.transaction();
     try {
     
@@ -249,15 +252,16 @@ async function makePayment(data) {
   
         // Send email with proper user email and formatted content
 
-        const finalData = aggregateData(data,bookingDetails, flightDetails.data.data);
+        // const finalData = aggregateData(data,bookingDetails, flightDetails.data.data);
        
-        await Queue.sendMessageToQueue({
-            recepientEmail: data.userEmail,
-            subject: 'Flight Booking Confirmed - Your E-Ticket',
-            content: finalData,
-        });
+        // await Queue.sendMessageToQueue({
+        //     recepientEmail: data.userEmail,
+        //     subject: 'Flight Booking Confirmed - Your E-Ticket',
+        //     content: finalData,
+        // });
 
         await transaction.commit();
+        console.log("Payment processed successfully for booking at service:", data.bookingId);
                     return true;
     } catch(error) {
         await transaction.rollback();
